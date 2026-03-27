@@ -1,5 +1,14 @@
 /**
  * app.js — Lógica principal de Unicorn't Store
+ *
+ * Índice de funciones:
+ *   formatPrice(amount)          — Formatea un número como precio CLP
+ *   buildProductCard(product)    — Genera el HTML de una card de producto
+ *   renderProductList()          — Renderiza la grilla de cards en #product-list (Home)
+ *   renderProductDetail()        — Renderiza el detalle de un producto en #product-content
+ *   initCartOffcanvas()          — Inicializa eventos del offcanvas del carrito
+ *
+ * Punto de entrada: DOMContentLoaded al final del archivo.
  */
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

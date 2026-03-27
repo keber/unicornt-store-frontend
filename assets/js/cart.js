@@ -2,6 +2,19 @@
  * cart.js — Lógica del carrito de Unicorn't Store
  * Persiste en localStorage bajo la clave "unicornt_cart"
  * Estructura: Array de { id: number, qty: number }
+ *
+ * Índice de funciones:
+ *   getCart()                    — Lee el carrito desde localStorage
+ *   saveCart(cart)               — Guarda el carrito en localStorage
+ *   addToCart(productId, qty)    — Agrega o incrementa un ítem
+ *   removeFromCart(productId)    — Elimina un ítem del carrito
+ *   clearCart()                  — Vacía el carrito
+ *   getCartCount()               — Retorna la suma total de unidades
+ *   updateCartBadge()            — Actualiza el badge del navbar
+ *   showCartToast(message)       — Muestra el toast de confirmación
+ *   getCartTotal(productsArr)    — Calcula el total en pesos
+ *   setCartItemQty(id, qty)      — Cambia la cantidad de un ítem
+ *   renderCart(productsArr)      — Renderiza el offcanvas del carrito
  */
 
 const CART_KEY = "unicornt_cart";
