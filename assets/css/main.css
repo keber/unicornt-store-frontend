@@ -1,13 +1,148 @@
-.container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 1rem;
+/* ============================================================
+   Unicorn't Store — main.css
+   Paleta:  --brand   #7c3aed  (violeta)
+            --accent  #ec4899  (fucsia/rosa)
+   ============================================================ */
+
+/* ── Variables ─────────────────────────────────────────────── */
+:root {
+  --brand:        #7c3aed;
+  --brand-dark:   #5b21b6;
+  --brand-light:  #ede9fe;
+  --accent:       #ec4899;
+  --accent-dark:  #be185d;
+  --text-dark:    #1e1b4b;
+  --footer-bg:    #1e1b4b;
 }
 
-header {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 2rem 1rem;
-    min-height: 180px;
+/* ── Base ───────────────────────────────────────────────────── */
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: var(--text-dark);
+  background-color: #faf9ff;
+}
+
+/* ── Navbar ─────────────────────────────────────────────────── */
+.bg-brand {
+  background-color: var(--brand) !important;
+}
+
+/* ── Botones temáticos ──────────────────────────────────────── */
+.btn-brand {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.btn-brand:hover,
+.btn-brand:focus {
+  background-color: var(--brand-dark);
+  border-color: var(--brand-dark);
+  color: #fff;
+}
+
+.btn-outline-brand {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+.btn-outline-brand:hover,
+.btn-outline-brand:focus {
+  background-color: var(--brand);
+  color: #fff;
+}
+
+/* ── Badge carrito ──────────────────────────────────────────── */
+.bg-accent {
+  background-color: var(--accent) !important;
+}
+.text-accent {
+  color: var(--accent) !important;
+}
+
+/* ── Badges de categoría ────────────────────────────────────── */
+.badge-polera {
+  background-color: var(--brand);
+  color: #fff;
+}
+.badge-tazon {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+/* ── Cards de producto ──────────────────────────────────────── */
+.product-card {
+  border: none;
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(124, 58, 237, 0.18) !important;
+}
+
+.product-card__img-wrapper {
+  background-color: var(--brand-light);
+  overflow: hidden;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.product-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+.product-card:hover .product-card__img {
+  transform: scale(1.05);
+}
+
+/* Truncar descripción a 3 líneas en la card */
+.product-card__desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Offcanvas carrito ──────────────────────────────────────── */
+.offcanvas-header.bg-brand {
+  background-color: var(--brand) !important;
+}
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.site-footer {
+  background-color: var(--footer-bg);
+}
+.text-footer-muted {
+  color: #a5b4fc;
+}
+.footer-link {
+  color: #a5b4fc;
+  text-decoration: none;
+  display: block;
+  margin-bottom: 0.4rem;
+  transition: color 0.15s;
+}
+.footer-link:hover {
+  color: #fff;
+}
+.footer-social {
+  color: #a5b4fc;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer-social:hover {
+  color: var(--accent);
+}
+.footer-divider {
+  border-color: rgba(165, 180, 252, 0.25);
+}
+
+/* ── Responsive helpers ─────────────────────────────────────── */
+@media (max-width: 420px) {
+  .product-card__img-wrapper {
+    height: 180px;
+  }
 }
