@@ -1,10 +1,9 @@
 # Unicorn't Store — Frontend MVP
 
-🔗 **Repositorio:** [github.com/keber/unicornt-store-frontend](https://github.com/keber/unicornt-store-frontend)
-
 Tienda en línea de poleras y tazones geek/memes, desarrollada como proyecto frontend con HTML5 semántico, Bootstrap 5 y JavaScript vanilla.
 
 🌐 **Demo:** [unicornt-store.keber.cl](https://unicornt-store.keber.cl)
+🔗 **Repositorio:** [github.com/keber/unicornt-store-frontend](https://github.com/keber/unicornt-store-frontend)
 
 ---
 
@@ -35,6 +34,13 @@ Unicorn't Store es un e-commerce estático orientado al público tech y gamer. P
 | JavaScript vanilla (ES6+) | Lógica de catálogo, carrito y renderizado |
 | localStorage | Persistencia del carrito |
 | Node.js + sharp | Script de procesamiento de imágenes (dev only) |
+
+
+---
+
+## Despliegue Web
+
+- Despliegue realizado usando Github Pages con custom domain y Cloudflare para DNS.
 
 ---
 
