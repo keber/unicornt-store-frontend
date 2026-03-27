@@ -1,1 +1,6 @@
 prepros.config
+node_modules/
+assets/img/originals/
+package.json
+package-lock.json
+scripts/
