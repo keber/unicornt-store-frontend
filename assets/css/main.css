@@ -140,9 +140,49 @@ body {
   border-color: rgba(165, 180, 252, 0.25);
 }
 
+/* ── Selector de cantidad (detalle) ─────────────────────────── */
+.qty-selector {
+  width: auto;
+}
+.qty-selector .form-control {
+  -moz-appearance: textfield;
+}
+.qty-selector .form-control::-webkit-outer-spin-button,
+.qty-selector .form-control::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ── Imagen de detalle ──────────────────────────────────────── */
+.detail-img-wrapper {
+  background-color: var(--brand-light);
+  max-height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.detail-img-wrapper img {
+  object-fit: cover;
+  height: 100%;
+  width: 100%;
+}
+
+/* ── Breadcrumb link ────────────────────────────────────────── */
+.text-brand {
+  color: var(--brand);
+  text-decoration: none;
+}
+.text-brand:hover {
+  color: var(--brand-dark);
+}
+
 /* ── Responsive helpers ─────────────────────────────────────── */
 @media (max-width: 420px) {
   .product-card__img-wrapper {
     height: 180px;
+  }
+  .detail-img-wrapper {
+    max-height: 280px;
   }
 }

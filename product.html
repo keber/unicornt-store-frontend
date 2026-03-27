@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Unicorn't Store</title>
+    <title>Detalle de producto — Unicorn't Store</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -22,13 +22,11 @@
     <header>
       <nav class="navbar navbar-expand-lg navbar-dark bg-brand sticky-top">
         <div class="container">
-          <!-- Logo -->
           <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
             <i class="fa-solid fa-unicorn fs-4"></i>
             <span class="fw-bold">Unicorn't Store</span>
           </a>
 
-          <!-- Hamburger -->
           <button
             class="navbar-toggler"
             type="button"
@@ -41,11 +39,10 @@
             <span class="navbar-toggler-icon"></span>
           </button>
 
-          <!-- Nav links -->
           <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
               <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="index.html">
+                <a class="nav-link" href="index.html">
                   <i class="fa-solid fa-house me-1"></i>Inicio
                 </a>
               </li>
@@ -56,7 +53,6 @@
               </li>
             </ul>
 
-            <!-- Cart button -->
             <button
               class="btn btn-outline-light position-relative"
               type="button"
@@ -96,7 +92,6 @@
       </div>
       <div class="offcanvas-body p-0">
         <div id="cart-items" class="p-3">
-          <!-- Items del carrito — se renderizan en Iteración 3 -->
           <p class="text-muted text-center py-4">
             <i class="fa-solid fa-box-open fa-2x mb-2 d-block"></i>
             El carrito está vacío.
@@ -105,26 +100,65 @@
       </div>
     </div>
 
-    <!-- ===== MAIN ===== -->
+    <!-- ===== MAIN — Detalle de producto ===== -->
     <main>
-      <section id="products" class="py-5">
+      <section id="product-detail" class="py-5">
         <div class="container">
-          <div class="d-flex align-items-center gap-3 mb-4">
-            <i class="fa-solid fa-star-shooting fa-xl text-accent"></i>
-            <h2 class="mb-0 fw-bold">Nuestros productos</h2>
+
+          <!-- Breadcrumb / volver -->
+          <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item">
+                <a href="index.html" class="text-brand">
+                  <i class="fa-solid fa-house me-1"></i>Inicio
+                </a>
+              </li>
+              <li class="breadcrumb-item active" id="breadcrumb-name" aria-current="page">
+                Producto
+              </li>
+            </ol>
+          </nav>
+
+          <!-- Contenido del producto (renderizado por app.js) -->
+          <div id="product-content" class="row g-5 align-items-start">
+            <!-- Skeleton / loading state -->
+            <div class="col-12 text-center py-5 text-muted">
+              <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+            </div>
           </div>
-          <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-list">
-            <!-- Cards generadas dinámicamente por app.js -->
-          </div>
+
         </div>
       </section>
     </main>
+
+    <!-- ===== TOAST de feedback ===== -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div
+        id="cart-toast"
+        class="toast align-items-center text-bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="fa-solid fa-circle-check me-2"></i>
+            <span id="toast-message">Producto agregado al carrito.</span>
+          </div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            aria-label="Cerrar"
+          ></button>
+        </div>
+      </div>
+    </div>
 
     <!-- ===== FOOTER ===== -->
     <footer class="site-footer text-white mt-5 py-5">
       <div class="container">
         <div class="row gy-4">
-          <!-- Columna 1: Marca -->
           <div class="col-12 col-md-4">
             <h5 class="fw-bold d-flex align-items-center gap-2">
               <i class="fa-solid fa-unicorn"></i> Unicorn't Store
@@ -134,8 +168,6 @@
               del universo digital. 🦄
             </p>
           </div>
-
-          <!-- Columna 2: Links rápidos -->
           <div class="col-6 col-md-4">
             <h6 class="fw-semibold text-uppercase mb-3">Links rápidos</h6>
             <ul class="list-unstyled small">
@@ -145,8 +177,6 @@
               <li><a href="#" class="footer-link">Términos y condiciones</a></li>
             </ul>
           </div>
-
-          <!-- Columna 3: Contacto -->
           <div class="col-6 col-md-4">
             <h6 class="fw-semibold text-uppercase mb-3">Contacto</h6>
             <ul class="list-unstyled small text-footer-muted">
@@ -176,7 +206,6 @@
             </div>
           </div>
         </div>
-
         <hr class="footer-divider mt-4" />
         <p class="text-center text-footer-muted small mb-0">
           &copy; 2026 Unicorn't Store. Hecho con
@@ -184,30 +213,6 @@
         </p>
       </div>
     </footer>
-
-    <!-- ===== TOAST de feedback ===== -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-      <div
-        id="cart-toast"
-        class="toast align-items-center text-bg-success border-0"
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-      >
-        <div class="d-flex">
-          <div class="toast-body">
-            <i class="fa-solid fa-circle-check me-2"></i>
-            <span id="toast-message">Producto agregado al carrito.</span>
-          </div>
-          <button
-            type="button"
-            class="btn-close btn-close-white me-2 m-auto"
-            data-bs-dismiss="toast"
-            aria-label="Cerrar"
-          ></button>
-        </div>
-      </div>
-    </div>
 
     <!-- ===== SCRIPTS ===== -->
     <script
