@@ -159,7 +159,7 @@ function renderCart(productsArr) {
       return `
       <div class="cart-item d-flex gap-3 align-items-start py-3 border-bottom" data-id="${product.id}">
         <img
-          src="${product.image}"
+          src="${product.image}-thumb.webp"
           alt="${product.name}"
           class="cart-item__img rounded-2 flex-shrink-0"
           width="72" height="72"

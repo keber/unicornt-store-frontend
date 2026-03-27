@@ -24,7 +24,7 @@ function buildProductCard(product) {
       <div class="card product-card h-100 shadow-sm">
         <div class="product-card__img-wrapper">
           <img
-            src="${product.image}"
+            src="${product.image}-card.webp"
             alt="${product.name}"
             class="card-img-top product-card__img"
             loading="lazy"
@@ -113,7 +113,7 @@ function renderProductDetail() {
     <div class="col-12 col-md-6">
       <div class="detail-img-wrapper rounded-4 overflow-hidden shadow">
         <img
-          src="${product.image}"
+          src="${product.image}.webp"
           alt="${product.name}"
           class="img-fluid w-100"
         />
