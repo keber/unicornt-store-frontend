@@ -1,4 +1,4 @@
-# Unicorn't Store — Frontend MVP
+# Unicorn't Store - Frontend MVP
 
 Tienda en línea de poleras y tazones geek/memes, desarrollada como proyecto frontend con HTML5 semántico, Bootstrap 5 y JavaScript vanilla.
 
@@ -15,11 +15,11 @@ Unicorn't Store es un e-commerce estático orientado al público tech y gamer. P
 
 ## Funcionalidades
 
-- **Catálogo de productos** — grilla responsiva con 49 poleras organizadas por categoría (DevOps, IT Crowd, Programador, Personajes, Linux, QA, General, etc.)
-- **Página de detalle** — imagen ampliada, descripción, selector de cantidad y botón de agregar al carrito
-- **Carrito offcanvas** — sidebar deslizable con resumen de items, ajuste de cantidades, eliminación individual, vaciado completo y total en tiempo real
-- **Persistencia** — el carrito se guarda en `localStorage` y sobrevive al recargar la página
-- **Feedback visual** — toast de confirmación al agregar productos, badge con contador en el ícono del carrito
+- **Catálogo de productos** - grilla responsiva con 49 poleras organizadas por categoría (DevOps, IT Crowd, Programador, Personajes, Linux, QA, General, etc.)
+- **Página de detalle** - imagen ampliada, descripción, selector de cantidad y botón de agregar al carrito
+- **Carrito offcanvas** - sidebar deslizable con resumen de items, ajuste de cantidades, eliminación individual, vaciado completo y total en tiempo real
+- **Persistencia** - el carrito se guarda en `localStorage` y sobrevive al recargar la página
+- **Feedback visual** - toast de confirmación al agregar productos, badge con contador en el ícono del carrito
 
 ---
 
@@ -47,7 +47,7 @@ Unicorn't Store es un e-commerce estático orientado al público tech y gamer. P
 ## Estructura del proyecto
 
 ```
-├── index.html              # Home — grilla de productos
+├── index.html              # Home - grilla de productos
 ├── product.html            # Detalle de producto
 ├── assets/
 │   ├── css/
