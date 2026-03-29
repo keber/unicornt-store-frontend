@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Unicorn't Store: poleras y tazones geek con los mejores memes del universo digital. Envíos a todo Chile." />
     <title>Unicorn't Store</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
@@ -17,6 +18,8 @@
     <link rel="stylesheet" href="assets/css/main.css" />
   </head>
   <body>
+    <!-- Skip link: accesibilidad teclado -->
+    <a href="#products" class="skip-link visually-hidden-focusable">Saltar al contenido principal</a>
 
     <!-- ===== NAVBAR ===== -->
     <header>
@@ -50,7 +53,7 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="#contacto">
                   <i class="fa-solid fa-envelope me-1"></i>Contacto
                 </a>
               </li>
@@ -123,14 +126,34 @@
 
     <!-- ===== MAIN ===== -->
     <main>
-      <section id="products" class="py-5">
+      <section id="products" class="py-5" aria-labelledby="products-heading">
         <div class="container">
           <div class="d-flex align-items-center gap-3 mb-4">
-            <i class="fa-solid fa-star-shooting fa-xl text-accent"></i>
-            <h2 class="mb-0 fw-bold">Nuestros productos</h2>
+            <i class="fa-solid fa-star-shooting fa-xl text-accent" aria-hidden="true"></i>
+            <h2 id="products-heading" class="mb-0 fw-bold">Nuestros productos</h2>
           </div>
-          <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-list">
+          <!--
+            Grilla de productos generada dinámicamente por assets/js/app.js.
+            Cada producto se renderiza como un <article class="col"> con imagen,
+            badge de categoría, nombre, descripción, precio y botones de acción.
+            Estructura por card:
+              <article>
+                <div class="card product-card">
+                  <img … loading="lazy" />
+                  <div class="card-body">
+                    <span class="badge">categoría</span>
+                    <h3>nombre</h3>
+                    <p>descripción</p>
+                    <p>precio</p>
+                    <a href="product.html?id=…">Ver más</a>
+                    <button class="btn-add-cart">Agregar</button>
+                  </div>
+                </div>
+              </article>
+          -->
+          <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-list" role="list" aria-label="Catálogo de productos">
             <!-- Cards generadas dinámicamente por app.js -->
+          </div>
           </div>
         </div>
       </section>
@@ -156,29 +179,31 @@
             <h6 class="fw-semibold text-uppercase mb-3">Links rápidos</h6>
             <ul class="list-unstyled small">
               <li><a href="index.html" class="footer-link">Inicio</a></li>
-              <li><a href="#" class="footer-link">Contacto</a></li>
+              <li><a href="#contacto" class="footer-link">Contacto</a></li>
               <li><a href="#" class="footer-link">Política de privacidad</a></li>
               <li><a href="#" class="footer-link">Términos y condiciones</a></li>
             </ul>
           </div>
 
           <!-- Columna 3: Contacto -->
-          <div class="col-6 col-md-4">
+          <div class="col-6 col-md-4" id="contacto">
             <h6 class="fw-semibold text-uppercase mb-3">Contacto</h6>
-            <ul class="list-unstyled small text-footer-muted">
-              <li class="mb-1">
-                <i class="fa-solid fa-location-dot me-2 text-accent"></i>
-                Av. Internet 404, Santiago
-              </li>
-              <li class="mb-1">
-                <i class="fa-solid fa-envelope me-2 text-accent"></i>
-                hola@unicorntstore.cl
-              </li>
-              <li class="mb-1">
-                <i class="fa-solid fa-phone me-2 text-accent"></i>
-                +56 9 1234 5678
-              </li>
-            </ul>
+            <address class="not-italic">
+              <ul class="list-unstyled small text-footer-muted">
+                <li class="mb-1">
+                  <i class="fa-solid fa-location-dot me-2 text-accent" aria-hidden="true"></i>
+                  Av. Internet 404, Santiago
+                </li>
+                <li class="mb-1">
+                  <i class="fa-solid fa-envelope me-2 text-accent" aria-hidden="true"></i>
+                  hola@unicorntstore.cl
+                </li>
+                <li class="mb-1">
+                  <i class="fa-solid fa-phone me-2 text-accent" aria-hidden="true"></i>
+                  +56 9 1234 5678
+                </li>
+              </ul>
+            </address>
             <div class="d-flex gap-3 mt-3">
               <a href="#" class="footer-social" aria-label="Instagram">
                 <i class="fa-brands fa-instagram fa-lg"></i>

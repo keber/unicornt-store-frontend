@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Detalle de producto — Unicorn't Store</title>
+    <meta name="description" content="Detalle de producto - Unicorn't Store: poleras y tazones geek con los mejores memes del universo digital." />
+    <title>Detalle de producto - Unicorn't Store</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -17,6 +18,8 @@
     <link rel="stylesheet" href="assets/css/main.css" />
   </head>
   <body>
+    <!-- Skip link: accesibilidad teclado -->
+    <a href="#product-detail" class="skip-link visually-hidden-focusable">Saltar al contenido principal</a>
 
     <!-- ===== NAVBAR ===== -->
     <header>
@@ -47,7 +50,7 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="index.html#contacto">
                   <i class="fa-solid fa-envelope me-1"></i>Contacto
                 </a>
               </li>
@@ -117,7 +120,7 @@
       </div>
     </div>
 
-    <!-- ===== MAIN — Detalle de producto ===== -->
+    <!-- ===== MAIN - Detalle de producto ===== -->
     <main>
       <section id="product-detail" class="py-5">
         <div class="container">
@@ -189,27 +192,29 @@
             <h6 class="fw-semibold text-uppercase mb-3">Links rápidos</h6>
             <ul class="list-unstyled small">
               <li><a href="index.html" class="footer-link">Inicio</a></li>
-              <li><a href="#" class="footer-link">Contacto</a></li>
+              <li><a href="index.html#contacto" class="footer-link">Contacto</a></li>
               <li><a href="#" class="footer-link">Política de privacidad</a></li>
               <li><a href="#" class="footer-link">Términos y condiciones</a></li>
             </ul>
           </div>
           <div class="col-6 col-md-4">
             <h6 class="fw-semibold text-uppercase mb-3">Contacto</h6>
-            <ul class="list-unstyled small text-footer-muted">
-              <li class="mb-1">
-                <i class="fa-solid fa-location-dot me-2 text-accent"></i>
-                Av. Internet 404, Santiago
-              </li>
-              <li class="mb-1">
-                <i class="fa-solid fa-envelope me-2 text-accent"></i>
-                hola@unicorntstore.cl
-              </li>
-              <li class="mb-1">
-                <i class="fa-solid fa-phone me-2 text-accent"></i>
-                +56 9 1234 5678
-              </li>
-            </ul>
+            <address class="not-italic">
+              <ul class="list-unstyled small text-footer-muted">
+                <li class="mb-1">
+                  <i class="fa-solid fa-location-dot me-2 text-accent" aria-hidden="true"></i>
+                  Av. Internet 404, Santiago
+                </li>
+                <li class="mb-1">
+                  <i class="fa-solid fa-envelope me-2 text-accent" aria-hidden="true"></i>
+                  hola@unicorntstore.cl
+                </li>
+                <li class="mb-1">
+                  <i class="fa-solid fa-phone me-2 text-accent" aria-hidden="true"></i>
+                  +56 9 1234 5678
+                </li>
+              </ul>
+            </address>
             <div class="d-flex gap-3 mt-3">
               <a href="#" class="footer-social" aria-label="Instagram">
                 <i class="fa-brands fa-instagram fa-lg"></i>
