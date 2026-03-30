@@ -180,7 +180,7 @@ const products = [
     price: 14990,
     description:
       "El nuevo número de emergencias de IT Crowd. En caso de incendio en la oficina, llame primero a este número, luego evacuarse. Solo los verdaderos fans lo reconocen.",
-    image: "assets/img/it-crowd/0118-999-881-999-118-725-3",
+    image: "assets/img/it-crowd/0118-999-881-999-119-725-3",
   },
   {
     id: 17,
