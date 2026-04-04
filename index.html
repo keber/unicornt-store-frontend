@@ -132,29 +132,28 @@
             <i class="fa-solid fa-star-shooting fa-xl text-accent" aria-hidden="true"></i>
             <h2 id="products-heading" class="mb-0 fw-bold">Nuestros productos</h2>
           </div>
-          <!--
-            Grilla de productos generada dinámicamente por assets/js/app.js.
-            Cada producto se renderiza como un <article class="col"> con imagen,
-            badge de categoría, nombre, descripción, precio y botones de acción.
-            Estructura por card:
-              <article>
-                <div class="card product-card">
-                  <img … loading="lazy" />
-                  <div class="card-body">
-                    <span class="badge">categoría</span>
-                    <h3>nombre</h3>
-                    <p>descripción</p>
-                    <p>precio</p>
-                    <a href="product.html?id=…">Ver más</a>
-                    <button class="btn-add-cart">Agregar</button>
-                  </div>
-                </div>
-              </article>
-          -->
-          <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-list" role="list" aria-label="Catálogo de productos">
-            <!-- Cards generadas dinámicamente por app.js -->
+          <!-- Filtro de categoría: botones en escritorio, select en móvil -->
+          <div id="category-filter" class="d-none d-md-flex flex-wrap gap-2 mb-4" aria-label="Filtrar por categoría">
           </div>
+          <select id="category-filter-select" class="form-select category-filter-select d-md-none mb-4" aria-label="Filtrar por categoría">
+          </select>
+
+          <!-- Carrusel de productos -->
+          <div class="product-carousel-wrapper">
+            <button class="carousel-nav-btn" id="carousel-prev" aria-label="Producto anterior">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            <div class="product-carousel" id="product-carousel" aria-live="polite" aria-label="Carrusel de productos">
+              <!-- Renderizado por app.js -->
+            </div>
+
+            <button class="carousel-nav-btn" id="carousel-next" aria-label="Producto siguiente">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
           </div>
+
+          <div class="text-center mt-2 text-muted small" id="carousel-indicator" aria-live="polite"></div>
         </div>
       </section>
     </main>
