@@ -3,3 +3,7 @@ node_modules/
 assets/img/originals/
 .claude
 .vscode/
+dist/
+*.tsbuildinfo
+.playwright-cli/
+debug.log
