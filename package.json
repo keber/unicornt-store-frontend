@@ -1,0 +1,11 @@
+{
+  "name": "unicornt-store-frontend",
+  "version": "1.0.0",
+  "description": "Unicorn't Store - Frontend MVP (poleras y tazones geek)",
+  "scripts": {
+    "process-images": "node scripts/process-images.js"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.5"
+  }
+}
