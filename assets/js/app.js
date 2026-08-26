@@ -2,14 +2,11 @@
  * app.js - Lógica principal de Unicorn't Store
  *
  * Índice de funciones:
- *   formatPrice(amount)              - Formatea un número como precio CLP
- *   buildCarouselSlot(product, pos)  - Genera el HTML de un slot del carrusel
- *   getFilteredProducts()            - Retorna productos según la categoría activa
- *   renderCategoryFilter()           - Renderiza botones de filtro de subcategoría
- *   renderCarousel()                 - Renderiza el carrusel de 3 items en #product-carousel
- *   initCarousel()                   - Inicializa carrusel, filtros y sus eventos
- *   renderProductDetail()            - Renderiza el detalle de un producto en #product-content
- *   initCartOffcanvas()              - Inicializa eventos del offcanvas del carrito
+ *   formatPrice(amount)          - Formatea un número como precio CLP
+ *   buildProductCard(product)    - Genera el HTML de una card de producto
+ *   renderProductList()          - Renderiza la grilla de cards en #product-list (Home)
+ *   renderProductDetail()        - Renderiza el detalle de un producto en #product-content
+ *   initCartOffcanvas()          - Inicializa eventos del offcanvas del carrito
  *
  * Punto de entrada: DOMContentLoaded al final del archivo.
  */
@@ -25,49 +22,35 @@ function formatPrice(amount) {
   return "$" + amount.toLocaleString("es-CL");
 }
 
-// ── Página Home: carrusel de productos ─────────────────────────────────────
+// ── Página Home: renderizado de cards ────────────────────────────────────────
 
-let carouselCurrentIndex = 0;
-let carouselCategory = "all";
-
-const SUBCATEGORY_LABELS = {
-  pm: "PM",
-  cloud: "Cloud",
-  devops: "DevOps",
-  enigma: "Enigma",
-  general: "General",
-  "it-crowd": "IT Crowd",
-  linux: "Linux",
-  personajes: "Personajes",
-  programador: "Programador",
-  qa: "QA",
-};
-
-function getFilteredProducts() {
-  if (carouselCategory === "all") return products;
-  return products.filter((p) => p.subcategory === carouselCategory);
-}
-
-function buildCarouselSlot(product, position) {
+function buildProductCard(product) {
   const categoryClass =
     product.category === "Polera" ? "badge-polera" : "badge-tazon";
-  const isFocused = position === "center";
+
   return `
-    <div class="carousel-slot carousel-slot--${position}" data-focus="${isFocused ? "active" : "side"}">
-      <div class="carousel-card">
-        <div class="carousel-card__img-wrapper">
+    <article class="col">
+      <div class="card product-card h-100 shadow-sm">
+        <div class="product-card__img-wrapper">
           <img
-            src="${product.image}-card.webp"
+            src="${product.image + '-card.webp'}"
             alt="${product.name}"
-            class="carousel-card__img"
+            class="card-img-top product-card__img"
             loading="lazy"
           />
         </div>
-        <div class="card-body p-3 d-flex flex-column">
-          <span class="badge ${categoryClass} mb-2 align-self-start">${product.category}</span>
-          <h3 class="card-title fs-6 fw-bold mb-1 lh-sm">${product.name}</h3>
-          <p class="fw-bold fs-5 text-accent mt-2 mb-3">${formatPrice(product.price)}</p>
-          <div class="d-flex gap-2 mt-auto">
+        <div class="card-body d-flex flex-column">
+          <span class="badge ${categoryClass} mb-2 align-self-start">
+            ${product.category}
+          </span>
+          <h3 class="card-title fs-6 fw-bold">${product.name}</h3>
+          <p class="card-text text-muted small flex-grow-1 product-card__desc">
+            ${product.description}
+          </p>
+          <p class="card-text fw-bold fs-5 text-accent mt-2">
+            ${formatPrice(product.price)}
+          </p>
+          <div class="d-flex gap-2 mt-3">
             <a
               href="product.html?id=${product.id}"
               class="btn btn-outline-brand btn-sm flex-grow-1"
@@ -83,154 +66,23 @@ function buildCarouselSlot(product, position) {
           </div>
         </div>
       </div>
-    </div>
+    </article>
   `;
 }
 
-function renderCategoryFilter() {
-  const container = document.getElementById("category-filter");
-  const selectEl = document.getElementById("category-filter-select");
+function renderProductList() {
+  const container = document.querySelector("#product-list");
   if (!container) return;
-  const categories = [...new Set(products.map((p) => p.subcategory))];
-  container.innerHTML = [
-    `<button class="carousel-filter-btn${carouselCategory === "all" ? " active" : ""}" data-cat="all">Todos</button>`,
-    ...categories.map(
-      (cat) =>
-        `<button class="carousel-filter-btn${carouselCategory === cat ? " active" : ""}" data-cat="${cat}">${SUBCATEGORY_LABELS[cat] || cat}</button>`
-    ),
-  ].join("");
-  if (selectEl) {
-    selectEl.innerHTML = [
-      `<option value="all">Todos</option>`,
-      ...categories.map(
-        (cat) =>
-          `<option value="${cat}"${carouselCategory === cat ? " selected" : ""}>${SUBCATEGORY_LABELS[cat] || cat}</option>`
-      ),
-    ].join("");
-    selectEl.value = carouselCategory;
-  }
-}
+  container.innerHTML = products.map(buildProductCard).join("");
 
-function renderCarousel() {
-  const container = document.getElementById("product-carousel");
-  if (!container) return;
-  const filtered = getFilteredProducts();
-  const indicatorEl = document.getElementById("carousel-indicator");
-  const prevBtn = document.getElementById("carousel-prev");
-  const nextBtn = document.getElementById("carousel-next");
-
-  if (filtered.length === 0) {
-    container.innerHTML =
-      '<p class="text-center text-muted w-100 py-5"><i class="fa-solid fa-box-open fa-2x mb-2 d-block"></i>No hay productos en esta categoría.</p>';
-    if (indicatorEl) indicatorEl.textContent = "";
-    if (prevBtn) prevBtn.disabled = true;
-    if (nextBtn) nextBtn.disabled = true;
-    return;
-  }
-
-  carouselCurrentIndex = Math.max(
-    0,
-    Math.min(carouselCurrentIndex, filtered.length - 1)
-  );
-
-  const prevProduct =
-    carouselCurrentIndex > 0 ? filtered[carouselCurrentIndex - 1] : null;
-  const centerProduct = filtered[carouselCurrentIndex];
-  const nextProduct =
-    carouselCurrentIndex < filtered.length - 1
-      ? filtered[carouselCurrentIndex + 1]
-      : null;
-
-  container.innerHTML = [
-    prevProduct
-      ? buildCarouselSlot(prevProduct, "left")
-      : '<div class="carousel-slot carousel-slot--empty" aria-hidden="true"></div>',
-    buildCarouselSlot(centerProduct, "center"),
-    nextProduct
-      ? buildCarouselSlot(nextProduct, "right")
-      : '<div class="carousel-slot carousel-slot--empty" aria-hidden="true"></div>',
-  ].join("");
-
-  if (indicatorEl)
-    indicatorEl.textContent = `${carouselCurrentIndex + 1} / ${filtered.length}`;
-  if (prevBtn) prevBtn.disabled = carouselCurrentIndex === 0;
-  if (nextBtn) nextBtn.disabled = carouselCurrentIndex === filtered.length - 1;
-
-  // Hover: desplaza el foco visual al slot lateral sobre el que se pasa el cursor
-  const leftSlot = container.querySelector(".carousel-slot--left");
-  const centerSlot = container.querySelector(".carousel-slot--center");
-  const rightSlot = container.querySelector(".carousel-slot--right");
-
-  function setFocus(focused) {
-    if (focused === "left") {
-      leftSlot?.setAttribute("data-focus", "active");
-      centerSlot?.setAttribute("data-focus", "passive");
-      rightSlot?.setAttribute("data-focus", "passive");
-    } else if (focused === "right") {
-      leftSlot?.setAttribute("data-focus", "passive");
-      centerSlot?.setAttribute("data-focus", "passive");
-      rightSlot?.setAttribute("data-focus", "active");
-    } else {
-      leftSlot?.setAttribute("data-focus", "side");
-      centerSlot?.setAttribute("data-focus", "active");
-      rightSlot?.setAttribute("data-focus", "side");
-    }
-  }
-
-  leftSlot?.addEventListener("mouseenter", () => setFocus("left"));
-  leftSlot?.addEventListener("mouseleave", () => setFocus("center"));
-  rightSlot?.addEventListener("mouseenter", () => setFocus("right"));
-  rightSlot?.addEventListener("mouseleave", () => setFocus("center"));
-}
-
-function initCarousel() {
-  const filterContainer = document.getElementById("category-filter");
-  const carouselContainer = document.getElementById("product-carousel");
-  if (!filterContainer || !carouselContainer) return;
-
-  renderCategoryFilter();
-  renderCarousel();
-
-  // Filtros de categoría (delegado)
-  filterContainer.addEventListener("click", (e) => {
-    const btn = e.target.closest(".carousel-filter-btn");
-    if (!btn) return;
-    carouselCategory = btn.dataset.cat;
-    carouselCurrentIndex = 0;
-    renderCategoryFilter();
-    renderCarousel();
-  });
-
-  // Filtro de categoría: select (móvil)
-  document.getElementById("category-filter-select")?.addEventListener("change", (e) => {
-    carouselCategory = e.target.value;
-    carouselCurrentIndex = 0;
-    renderCategoryFilter();
-    renderCarousel();
-  });
-
-  // Navegación prev / next
-  document.getElementById("carousel-prev")?.addEventListener("click", () => {
-    if (carouselCurrentIndex > 0) {
-      carouselCurrentIndex--;
-      renderCarousel();
-    }
-  });
-  document.getElementById("carousel-next")?.addEventListener("click", () => {
-    const filtered = getFilteredProducts();
-    if (carouselCurrentIndex < filtered.length - 1) {
-      carouselCurrentIndex++;
-      renderCarousel();
-    }
-  });
-
-  // Agregar al carrito (delegado)
-  carouselContainer.addEventListener("click", (e) => {
+  // Evento delegado: botones "Agregar" en las cards
+  container.addEventListener("click", (e) => {
     const btn = e.target.closest(".btn-add-cart");
     if (!btn) return;
-    const id = Number.parseInt(btn.dataset.id, 10);
+    const id = parseInt(btn.dataset.id, 10);
     addToCart(id);
     showCartToast("¡Producto agregado al carrito!");
+    // Feedback visual breve en el botón
     btn.innerHTML = '<i class="fa-solid fa-check me-1"></i>Agregado';
     btn.disabled = true;
     setTimeout(() => {
@@ -238,24 +90,6 @@ function initCarousel() {
       btn.disabled = false;
     }, 1500);
   });
-
-  // Swipe táctil (móvil)
-  let touchStartX = 0;
-  carouselContainer.addEventListener("touchstart", (e) => {
-    touchStartX = e.changedTouches[0].clientX;
-  }, { passive: true });
-  carouselContainer.addEventListener("touchend", (e) => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) < 50) return;
-    const filtered = getFilteredProducts();
-    if (dx < 0 && carouselCurrentIndex < filtered.length - 1) {
-      carouselCurrentIndex++;
-      renderCarousel();
-    } else if (dx > 0 && carouselCurrentIndex > 0) {
-      carouselCurrentIndex--;
-      renderCarousel();
-    }
-  }, { passive: true });
 }
 
 // ── Página Detalle: renderizado del producto ──────────────────────────────────
@@ -456,8 +290,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initCartOffcanvas();
 
   // Home
-  if (document.querySelector("#product-carousel")) {
-    initCarousel();
+  if (document.querySelector("#product-list")) {
+    renderProductList();
   }
 
   // Detalle
