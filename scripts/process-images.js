@@ -17,8 +17,13 @@ const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 
-const IMG_DIR = path.resolve(__dirname, "../assets/img");
-const ORIGINALS_DIR = path.join(IMG_DIR, "originals");
+// Etapa 8: las imagenes servidas se movieron a public/assets/img/ (Vite
+// solo copia a dist/ lo que esta bajo public/ o lo que se referencia
+// via import; assets/img/* fuera de public/ nunca llegaba al build).
+// Los originales de respaldo se quedan fuera de public/ a proposito
+// para no publicarlos con el sitio.
+const IMG_DIR = path.resolve(__dirname, "../public/assets/img");
+const ORIGINALS_DIR = path.resolve(__dirname, "../assets/img/originals");
 
 // ── Colores ───────────────────────────────────────────────────────────────────
 const BG = { r: 237, g: 233, b: 254, alpha: 1 }; // #ede9fe
