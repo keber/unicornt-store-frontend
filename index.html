@@ -147,6 +147,11 @@
                 />
                 <div class="invalid-feedback" id="checkout-address-error"></div>
               </div>
+              <div
+                id="checkout-submit-error"
+                class="alert alert-danger py-2 px-3 small d-none"
+                role="alert"
+              ></div>
               <button type="submit" id="btn-checkout" class="btn btn-brand w-100">
                 <i class="fa-solid fa-bag-shopping me-2"></i>Finalizar compra
               </button>
@@ -168,9 +173,18 @@
             <h2 id="products-heading" class="mb-0 fw-bold">Nuestros productos</h2>
           </div>
           <!-- Grilla de productos: cargada de forma asincrona y renderizada por
-               src/views/catalog.view.ts (ver ProductCard, Etapa 4). -->
-          <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-list" role="list" aria-label="Catálogo de productos">
-            <!-- Contenido generado dinamicamente por catalog.view.ts -->
+               src/views/catalog.view.ts (ver ProductCard, Etapa 4). El spinner es
+               el skeleton inicial (Etapa 6); aria-busy se retira solo al terminar. -->
+          <div
+            class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4"
+            id="product-list"
+            role="list"
+            aria-label="Catálogo de productos"
+            aria-busy="true"
+          >
+            <div class="col-12 text-center py-5 text-muted">
+              <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+            </div>
           </div>
           </div>
         </div>

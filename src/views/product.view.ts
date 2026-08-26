@@ -56,40 +56,51 @@ function wireAddToCart(
   });
 }
 
+/**
+ * Carga y renderiza el detalle (Etapas 4 y 6): aria-busy mientras
+ * fetchProducts() esta en vuelo, skeleton -> detalle o fallback con
+ * reintentar, y aria-busy se retira en el finally sin importar si
+ * termino en exito, error o el redirect por id invalido.
+ */
 async function renderProduct(container: Element): Promise<void> {
+  container.setAttribute("aria-busy", "true");
   container.innerHTML = renderLoadingState("Cargando producto...");
 
-  let products: ProductModel[];
   try {
-    products = await fetchProducts();
-  } catch {
-    container.innerHTML = renderErrorFallback("No se pudo cargar el producto. Intenta de nuevo.");
-    updateCartBadge();
-    requireElement(RETRY_BUTTON_SELECTOR, container).addEventListener(
-      "click",
-      () => {
-        void renderProduct(container);
-      },
-      { once: true },
-    );
-    return;
+    let products: ProductModel[];
+    try {
+      products = await fetchProducts();
+    } catch {
+      container.innerHTML = renderErrorFallback("No se pudo cargar el producto. Intenta de nuevo.");
+      updateCartBadge();
+      requireElement(RETRY_BUTTON_SELECTOR, container).addEventListener(
+        "click",
+        () => {
+          void renderProduct(container);
+        },
+        { once: true },
+      );
+      return;
+    }
+
+    const id = getRequestedProductId();
+    const product = id === null ? undefined : products.find((p) => p.id === id);
+
+    if (!product) {
+      window.location.href = "index.html";
+      return;
+    }
+
+    requireElement(BREADCRUMB_NAME_SELECTOR).textContent = product.name;
+    document.title = `${product.name} - Unicorn't Store`;
+
+    container.innerHTML = renderProductDetail(product);
+    const qtyInput = wireQuantitySelector(container);
+    wireAddToCart(container, product, qtyInput);
+    initCartView(products);
+  } finally {
+    container.removeAttribute("aria-busy");
   }
-
-  const id = getRequestedProductId();
-  const product = id === null ? undefined : products.find((p) => p.id === id);
-
-  if (!product) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  requireElement(BREADCRUMB_NAME_SELECTOR).textContent = product.name;
-  document.title = `${product.name} - Unicorn't Store`;
-
-  container.innerHTML = renderProductDetail(product);
-  const qtyInput = wireQuantitySelector(container);
-  wireAddToCart(container, product, qtyInput);
-  initCartView(products);
 }
 
 export function initProductView(): void {

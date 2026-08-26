@@ -36,12 +36,13 @@ function wireAddToCartDelegation(container: Element): void {
 }
 
 /**
- * Carga y renderiza el catalogo (Etapa 4, paso 1). El manejo de
- * loading/error aqui es minimo a proposito -- la Etapa 6 lo formaliza
- * con aria-busy y un skeleton completo -- pero ya es funcional: no deja
- * la pagina en blanco ni sin forma de reintentar si falla la carga.
+ * Carga y renderiza el catalogo (Etapas 4 y 6): aria-busy mientras
+ * fetchProducts() esta en vuelo, skeleton -> catalogo o fallback con
+ * reintentar, y aria-busy se retira en el finally sin importar el
+ * resultado (Hito 2, criterio de asincronia).
  */
 async function renderCatalog(container: Element): Promise<void> {
+  container.setAttribute("aria-busy", "true");
   container.innerHTML = renderLoadingState("Cargando catálogo...");
 
   try {
@@ -59,6 +60,8 @@ async function renderCatalog(container: Element): Promise<void> {
       },
       { once: true },
     );
+  } finally {
+    container.removeAttribute("aria-busy");
   }
 }
 

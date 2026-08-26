@@ -143,6 +143,11 @@
                 />
                 <div class="invalid-feedback" id="checkout-address-error"></div>
               </div>
+              <div
+                id="checkout-submit-error"
+                class="alert alert-danger py-2 px-3 small d-none"
+                role="alert"
+              ></div>
               <button type="submit" id="btn-checkout" class="btn btn-brand w-100">
                 <i class="fa-solid fa-bag-shopping me-2"></i>Finalizar compra
               </button>
@@ -175,8 +180,10 @@
           </nav>
 
           <!-- Contenido del producto: cargado de forma asincrona y renderizado
-               por src/views/product.view.ts (ver ProductDetail, Etapa 4). -->
-          <div id="product-content" class="row g-5 align-items-start">
+               por src/views/product.view.ts (ver ProductDetail, Etapa 4). El
+               spinner es el skeleton inicial (Etapa 6); aria-busy se retira
+               solo al terminar. -->
+          <div id="product-content" class="row g-5 align-items-start" aria-busy="true">
             <!-- Skeleton / loading state -->
             <div class="col-12 text-center py-5 text-muted">
               <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
