@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Detalle de producto - Unicorn't Store: poleras y tazones geek con los mejores memes del universo digital." />
     <title>Detalle de producto - Unicorn't Store</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
-    />
+    <!-- Bootstrap CSS: bundleado por Vite desde node_modules (import en src/pages/product.main.ts), ya no CDN. -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -139,7 +134,8 @@
             </ol>
           </nav>
 
-          <!-- Contenido del producto (renderizado por app.js) -->
+          <!-- Contenido del producto: cargado de forma asincrona y renderizado
+               por src/views/product.view.ts (ver ProductDetail, Etapa 4). -->
           <div id="product-content" class="row g-5 align-items-start">
             <!-- Skeleton / loading state -->
             <div class="col-12 text-center py-5 text-muted">
@@ -237,15 +233,8 @@
     </footer>
 
     <!-- ===== SCRIPTS ===== -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-      crossorigin="anonymous"
-    ></script>
-    <script src="assets/js/products.js"></script>
-    <script src="assets/js/cart.js"></script>
-    <script src="assets/js/app.js"></script>
-    <!-- Etapa 2 (toolchain): smoke entrypoint de Vite, no reemplaza el JS legado. -->
+    <!-- Etapa 4: reemplaza products.js + cart.js + app.js + el bootstrap.bundle.min.js
+         de CDN. Bootstrap JS (Offcanvas/Toast) se importa donde se usa. -->
     <script type="module" src="/src/pages/product.main.ts"></script>
   </body>
 </html>

@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Unicorn't Store: poleras y tazones geek con los mejores memes del universo digital. Envíos a todo Chile." />
     <title>Unicorn't Store</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous"
-    />
+    <!-- Bootstrap CSS: bundleado por Vite desde node_modules (import en src/pages/catalog.main.ts), ya no CDN. -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -132,27 +127,10 @@
             <i class="fa-solid fa-star-shooting fa-xl text-accent" aria-hidden="true"></i>
             <h2 id="products-heading" class="mb-0 fw-bold">Nuestros productos</h2>
           </div>
-          <!--
-            Grilla de productos generada dinámicamente por assets/js/app.js.
-            Cada producto se renderiza como un <article class="col"> con imagen,
-            badge de categoría, nombre, descripción, precio y botones de acción.
-            Estructura por card:
-              <article>
-                <div class="card product-card">
-                  <img … loading="lazy" />
-                  <div class="card-body">
-                    <span class="badge">categoría</span>
-                    <h3>nombre</h3>
-                    <p>descripción</p>
-                    <p>precio</p>
-                    <a href="product.html?id=…">Ver más</a>
-                    <button class="btn-add-cart">Agregar</button>
-                  </div>
-                </div>
-              </article>
-          -->
+          <!-- Grilla de productos: cargada de forma asincrona y renderizada por
+               src/views/catalog.view.ts (ver ProductCard, Etapa 4). -->
           <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-list" role="list" aria-label="Catálogo de productos">
-            <!-- Cards generadas dinámicamente por app.js -->
+            <!-- Contenido generado dinamicamente por catalog.view.ts -->
           </div>
           </div>
         </div>
@@ -251,15 +229,8 @@
     </div>
 
     <!-- ===== SCRIPTS ===== -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-      crossorigin="anonymous"
-    ></script>
-    <script src="assets/js/products.js"></script>
-    <script src="assets/js/cart.js"></script>
-    <script src="assets/js/app.js"></script>
-    <!-- Etapa 2 (toolchain): smoke entrypoint de Vite, no reemplaza el JS legado. -->
+    <!-- Etapa 4: reemplaza products.js + cart.js + app.js + el bootstrap.bundle.min.js
+         de CDN. Bootstrap JS (Offcanvas/Toast) se importa donde se usa. -->
     <script type="module" src="/src/pages/catalog.main.ts"></script>
   </body>
 </html>
