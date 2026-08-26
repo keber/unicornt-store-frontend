@@ -1,7 +1,8 @@
 /**
- * Version minima (Etapa 4): un spinner centrado, igual al placeholder
- * que ya traia product.html a mano. La Etapa 6 la reemplaza por un
- * skeleton real con aria-busy sobre el contenedor.
+ * Spinner centrado, igual al placeholder que ya traia product.html a
+ * mano. El aria-busy="true" no vive aqui: lo pone el contenedor padre
+ * (ver catalog.view.ts / product.view.ts, Etapa 6), tanto en el HTML
+ * inicial como mientras esta funcion esta montada.
  */
 export function renderLoadingState(message = "Cargando..."): string {
   return `

@@ -1,6 +1,6 @@
 export const RETRY_BUTTON_SELECTOR = "[data-action='retry']";
 
-/** Fallback visual con opcion de reintentar (Etapa 6 le agrega el resto del manejo de asincronia). */
+/** Fallback visual con opcion de reintentar; quien monta esto le agrega el listener de retry (ver catalog.view.ts / product.view.ts). */
 export function renderErrorFallback(message: string): string {
   return `
     <div class="col-12 text-center py-5">

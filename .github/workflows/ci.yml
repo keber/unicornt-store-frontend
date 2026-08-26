@@ -1,0 +1,40 @@
+# Pipeline de calidad (Etapa 7): valida cada push/PR antes de que llegue
+# a main. Separado del deploy (static.yml, Etapa 8) a proposito: este
+# workflow nunca publica nada, solo confirma que el codigo compila,
+# pasa lint/formato y las pruebas.
+name: CI
+
+on:
+  push:
+    branches: ["main", "refactor", "etapas/**"]
+  pull_request:
+    branches: ["main", "refactor"]
+  workflow_dispatch:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies (lockfile exacto)
+        run: npm ci
+
+      - name: Formato (Prettier)
+        run: npm run format:check
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Pruebas (Vitest)
+        run: npm test
+
+      - name: Build (tsc + Vite)
+        run: npm run build
