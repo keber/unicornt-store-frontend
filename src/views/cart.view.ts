@@ -19,7 +19,7 @@ import {
   toCartLines,
 } from "@/services/cart.service";
 import { readCart, writeCart } from "@/storage/cart.storage";
-import { completeSimulatedCheckout } from "@/views/checkout.view";
+import { completeSimulatedCheckout, initCheckoutForm } from "@/views/checkout.view";
 
 /**
  * Wiring del offcanvas del carrito (Etapa 4, pasos 3 y 4 del
@@ -35,7 +35,7 @@ const CART_ITEMS_SELECTOR = "#cart-items";
 const CART_FOOTER_SELECTOR = "#cart-footer";
 const CART_TOTAL_SELECTOR = "#cart-total";
 const BTN_CLEAR_SELECTOR = "#btn-clear-cart";
-const BTN_CHECKOUT_SELECTOR = "#btn-checkout";
+const CHECKOUT_FORM_SELECTOR = "#checkout-form";
 
 /** No depende del catalogo: el badge solo necesita la cantidad total de unidades. */
 export function updateCartBadge(): void {
@@ -122,7 +122,12 @@ export function initCartView(products: readonly ProductModel[]): void {
     persistAndRerender(clearCart(), products);
   });
 
-  requireElementOfType(BTN_CHECKOUT_SELECTOR, HTMLButtonElement).addEventListener("click", () => {
+  initCheckoutForm(requireElementOfType(CHECKOUT_FORM_SELECTOR, HTMLFormElement), () => {
+    // Defensivo: el formulario esta oculto con el carrito vacio, pero
+    // no depender solo de eso para vaciar/mostrar el toast de "gracias".
+    if (readCart().items.length === 0) {
+      return;
+    }
     persistAndRerender(clearCart(), products);
     completeSimulatedCheckout(offcanvasEl);
   });

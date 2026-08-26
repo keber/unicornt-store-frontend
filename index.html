@@ -108,10 +108,50 @@
             <span id="cart-total" class="fw-bold fs-5 text-accent">$0</span>
           </div>
           <div class="d-grid gap-2">
-            <button id="btn-checkout" class="btn btn-brand">
-              <i class="fa-solid fa-bag-shopping me-2"></i>Finalizar compra
-            </button>
-            <button id="btn-clear-cart" class="btn btn-outline-danger btn-sm">
+            <!-- Formulario real de checkout (Etapa 5): preventDefault() + FormData,
+                 validado por src/views/checkout.view.ts. -->
+            <form id="checkout-form" novalidate>
+              <div class="mb-2">
+                <label for="checkout-fullName" class="form-label small mb-1">Nombre completo</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-fullName"
+                  name="fullName"
+                  autocomplete="name"
+                  aria-describedby="checkout-fullName-error"
+                />
+                <div class="invalid-feedback" id="checkout-fullName-error"></div>
+              </div>
+              <div class="mb-2">
+                <label for="checkout-email" class="form-label small mb-1">Email</label>
+                <input
+                  type="email"
+                  class="form-control form-control-sm"
+                  id="checkout-email"
+                  name="email"
+                  autocomplete="email"
+                  aria-describedby="checkout-email-error"
+                />
+                <div class="invalid-feedback" id="checkout-email-error"></div>
+              </div>
+              <div class="mb-3">
+                <label for="checkout-address" class="form-label small mb-1">Dirección de envío</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-address"
+                  name="address"
+                  autocomplete="street-address"
+                  aria-describedby="checkout-address-error"
+                />
+                <div class="invalid-feedback" id="checkout-address-error"></div>
+              </div>
+              <button type="submit" id="btn-checkout" class="btn btn-brand w-100">
+                <i class="fa-solid fa-bag-shopping me-2"></i>Finalizar compra
+              </button>
+            </form>
+            <button type="button" id="btn-clear-cart" class="btn btn-outline-danger btn-sm">
               <i class="fa-solid fa-trash me-1"></i>Vaciar carrito
             </button>
           </div>
