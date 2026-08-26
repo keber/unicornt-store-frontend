@@ -1,7 +1,7 @@
 {
   "name": "unicornt-store-frontend",
-  "version": "1.0.0",
-  "description": "Unicorn't Store - Frontend MVP (poleras y tazones geek)",
+  "version": "2.0.0",
+  "description": "Unicorn't Store - Frontend (Vite + TypeScript estricto)",
   "type": "module",
   "scripts": {
     "dev": "vite",
