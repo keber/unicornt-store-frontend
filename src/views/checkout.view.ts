@@ -1,12 +1,16 @@
 import { Offcanvas } from "bootstrap";
 import { showToast } from "@/components/Toast/Toast";
 import { requireElement, requireElementOfType } from "@/lib/dom";
+import type { CartModel } from "@/models/cart.model";
 import {
   extractRawCheckoutInput,
   hasCheckoutErrors,
   validateCheckoutInput,
   type CheckoutFieldErrors,
+  type CheckoutStatus,
 } from "@/models/checkout.model";
+import type { ProductModel } from "@/models/product.model";
+import { buildCheckoutModel, submitCheckout } from "@/services/checkout.service";
 
 /** `name="..."` del input en el HTML debe calzar con estas claves (ver extractRawCheckoutInput). */
 const FIELD_INPUT_IDS = {
@@ -14,6 +18,11 @@ const FIELD_INPUT_IDS = {
   email: "checkout-email",
   address: "checkout-address",
 } as const;
+
+const SUBMIT_BUTTON_SELECTOR = "#btn-checkout";
+const SUBMIT_ERROR_SELECTOR = "#checkout-submit-error";
+const SUBMITTING_HTML =
+  '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Enviando...';
 
 function setFieldError(
   form: HTMLFormElement,
@@ -51,18 +60,59 @@ function applyFieldErrors(form: HTMLFormElement, errors: CheckoutFieldErrors): b
   return firstInvalid === null;
 }
 
+function setSubmitError(form: HTMLFormElement, message: string | null): void {
+  const el = requireElement(SUBMIT_ERROR_SELECTOR, form);
+  el.textContent = message ?? "";
+  el.classList.toggle("d-none", message === null);
+}
+
 /**
- * Convierte "Finalizar compra" en un formulario real (Etapa 5,
- * 3 puntos de la rubrica): preventDefault(), extrae los datos con
- * FormData, los valida y muestra los errores junto al campo
- * correspondiente en vez de dejar que el navegador recargue la pagina.
- *
- * Solo si el formulario es valido se llama a onValidSubmit(): hoy
- * (Etapa 5) eso dispara el checkout simulado de completeSimulatedCheckout();
- * la Etapa 6 lo reemplaza por un submitOrder() asincrono real con
- * try/catch/finally y estados de carga.
+ * Unico lugar que traduce CheckoutStatus a DOM. El switch es exhaustivo
+ * (el `default` con `never` obliga a actualizarlo si CHECKOUT_STATUSES
+ * gana un valor nuevo) para que el estado del boton se controle
+ * siempre contra el enum, nunca contra una bandera booleana suelta.
  */
-export function initCheckoutForm(form: HTMLFormElement, onValidSubmit: () => void): void {
+function renderCheckoutStatus(
+  status: CheckoutStatus,
+  submitButton: HTMLButtonElement,
+  idleButtonHtml: string,
+): void {
+  switch (status) {
+    case "idle":
+    case "success":
+    case "error":
+      submitButton.disabled = false;
+      submitButton.removeAttribute("aria-busy");
+      submitButton.innerHTML = idleButtonHtml;
+      return;
+    case "submitting":
+      submitButton.disabled = true;
+      submitButton.setAttribute("aria-busy", "true");
+      submitButton.innerHTML = SUBMITTING_HTML;
+      return;
+    default: {
+      const exhaustive: never = status;
+      throw new TypeError(`Estado de checkout no manejado: ${String(exhaustive)}`);
+    }
+  }
+}
+
+export interface CheckoutFormOptions {
+  getCart: () => CartModel;
+  getProducts: () => readonly ProductModel[];
+  onSuccess: () => void;
+}
+
+/**
+ * Convierte "Finalizar compra" en un formulario real y asincrono
+ * (Etapas 5 y 6): preventDefault() + FormData + validacion (Etapa 5);
+ * submitOrder() con latencia simulada, boton deshabilitado + spinner,
+ * y try/catch/finally (Etapa 6, 4 puntos de la rubrica).
+ */
+export function initCheckoutForm(form: HTMLFormElement, options: CheckoutFormOptions): void {
+  const submitButton = requireElementOfType(SUBMIT_BUTTON_SELECTOR, HTMLButtonElement, form);
+  const idleButtonHtml = submitButton.innerHTML;
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
@@ -73,10 +123,35 @@ export function initCheckoutForm(form: HTMLFormElement, onValidSubmit: () => voi
       applyFieldErrors(form, errors);
       return;
     }
-
     applyFieldErrors(form, {});
-    form.reset();
-    onValidSubmit();
+    setSubmitError(form, null);
+
+    const cart = options.getCart();
+    if (cart.items.length === 0) {
+      // Defensivo: el formulario esta oculto con el carrito vacio (ver
+      // cart.view.ts), pero no depender solo de eso.
+      return;
+    }
+    const order = buildCheckoutModel(raw, cart, options.getProducts());
+
+    void (async () => {
+      let status: CheckoutStatus = "submitting";
+      renderCheckoutStatus(status, submitButton, idleButtonHtml);
+
+      try {
+        await submitCheckout(order);
+        status = "success";
+        form.reset();
+        options.onSuccess();
+      } catch {
+        status = "error";
+        setSubmitError(form, "No se pudo procesar tu compra. Intenta de nuevo.");
+      } finally {
+        // Unico lugar que vuelve a pintar el boton, ya sea que el envio
+        // haya terminado en "success" o en "error".
+        renderCheckoutStatus(status, submitButton, idleButtonHtml);
+      }
+    })();
   });
 }
 

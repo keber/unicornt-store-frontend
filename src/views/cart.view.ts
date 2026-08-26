@@ -122,13 +122,12 @@ export function initCartView(products: readonly ProductModel[]): void {
     persistAndRerender(clearCart(), products);
   });
 
-  initCheckoutForm(requireElementOfType(CHECKOUT_FORM_SELECTOR, HTMLFormElement), () => {
-    // Defensivo: el formulario esta oculto con el carrito vacio, pero
-    // no depender solo de eso para vaciar/mostrar el toast de "gracias".
-    if (readCart().items.length === 0) {
-      return;
-    }
-    persistAndRerender(clearCart(), products);
-    completeSimulatedCheckout(offcanvasEl);
+  initCheckoutForm(requireElementOfType(CHECKOUT_FORM_SELECTOR, HTMLFormElement), {
+    getCart: readCart,
+    getProducts: () => products,
+    onSuccess: () => {
+      persistAndRerender(clearCart(), products);
+      completeSimulatedCheckout(offcanvasEl);
+    },
   });
 }
