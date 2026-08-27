@@ -1,4 +1,4 @@
-import { renderProductCard } from "@/components/ProductCard/ProductCard";
+import { createProductCardElement } from "@/components/ProductCard/ProductCard";
 import {
   RETRY_BUTTON_SELECTOR,
   renderErrorFallback,
@@ -47,7 +47,7 @@ async function renderCatalog(container: Element): Promise<void> {
 
   try {
     const products = await fetchProducts();
-    container.innerHTML = products.map(renderProductCard).join("");
+    container.replaceChildren(...products.map(createProductCardElement));
     wireAddToCartDelegation(container);
     initCartView(products);
   } catch {
