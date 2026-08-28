@@ -4,3 +4,10 @@ assets/img/originals/
 package.json
 package-lock.json
 scripts/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
