@@ -1,9 +1,9 @@
 import { createProductDetail } from "@/components/ProductDetail/ProductDetail";
 import {
   RETRY_BUTTON_SELECTOR,
-  renderErrorFallback,
+  createErrorFallback,
 } from "@/components/ErrorFallback/ErrorFallback";
-import { renderLoadingState } from "@/components/LoadingSkeleton/LoadingSkeleton";
+import { createLoadingState } from "@/components/LoadingSkeleton/LoadingSkeleton";
 import { showToast } from "@/components/Toast/Toast";
 import { flashButtonFeedback } from "@/lib/button-feedback";
 import { requireElement, requireElementOfType } from "@/lib/dom";
@@ -64,14 +64,16 @@ function wireAddToCart(
  */
 async function renderProduct(container: Element): Promise<void> {
   container.setAttribute("aria-busy", "true");
-  container.innerHTML = renderLoadingState("Cargando producto...");
+  container.replaceChildren(createLoadingState("Cargando producto..."));
 
   try {
     let products: ProductModel[];
     try {
       products = await fetchProducts();
     } catch {
-      container.innerHTML = renderErrorFallback("No se pudo cargar el producto. Intenta de nuevo.");
+      container.replaceChildren(
+        createErrorFallback("No se pudo cargar el producto. Intenta de nuevo."),
+      );
       updateCartBadge();
       requireElement(RETRY_BUTTON_SELECTOR, container).addEventListener(
         "click",

@@ -1,9 +1,9 @@
 import { createProductCardElement } from "@/components/ProductCard/ProductCard";
 import {
   RETRY_BUTTON_SELECTOR,
-  renderErrorFallback,
+  createErrorFallback,
 } from "@/components/ErrorFallback/ErrorFallback";
-import { renderLoadingState } from "@/components/LoadingSkeleton/LoadingSkeleton";
+import { createLoadingState } from "@/components/LoadingSkeleton/LoadingSkeleton";
 import { showToast } from "@/components/Toast/Toast";
 import { flashButtonFeedback } from "@/lib/button-feedback";
 import {
@@ -43,7 +43,7 @@ function wireAddToCartDelegation(container: Element): void {
  */
 async function renderCatalog(container: Element): Promise<void> {
   container.setAttribute("aria-busy", "true");
-  container.innerHTML = renderLoadingState("Cargando catálogo...");
+  container.replaceChildren(createLoadingState("Cargando catálogo..."));
 
   try {
     const products = await fetchProducts();
@@ -51,7 +51,9 @@ async function renderCatalog(container: Element): Promise<void> {
     wireAddToCartDelegation(container);
     initCartView(products);
   } catch {
-    container.innerHTML = renderErrorFallback("No se pudo cargar el catálogo. Intenta de nuevo.");
+    container.replaceChildren(
+      createErrorFallback("No se pudo cargar el catálogo. Intenta de nuevo."),
+    );
     updateCartBadge();
     requireElement(RETRY_BUTTON_SELECTOR, container).addEventListener(
       "click",
