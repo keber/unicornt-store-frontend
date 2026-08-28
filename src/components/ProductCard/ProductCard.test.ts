@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { renderProductCard } from "@/components/ProductCard/ProductCard";
+import { createProductCardElement } from "@/components/ProductCard/ProductCard";
 import { requireElementOfType } from "@/lib/dom";
 import type { ProductModel } from "@/models/product.model";
 
@@ -17,9 +17,10 @@ beforeEach(() => {
   document.body.innerHTML = "";
 });
 
-describe("renderProductCard", () => {
+describe("createProductCardElement", () => {
   it("renderiza la imagen -card.webp, el nombre, el precio y el badge de categoria", () => {
-    document.body.innerHTML = renderProductCard(product);
+    const card = createProductCardElement(product);
+    document.body.appendChild(card);
 
     const img = requireElementOfType("img", HTMLImageElement);
     expect(img.src).toContain("assets/img/devops/breaking-prod-card.webp");
@@ -30,20 +31,23 @@ describe("renderProductCard", () => {
   });
 
   it('el link "Ver mas" apunta a product.html?id={id}', () => {
-    document.body.innerHTML = renderProductCard(product);
+    const card = createProductCardElement(product);
+    document.body.appendChild(card);
     const link = requireElementOfType("a", HTMLAnchorElement);
     expect(link.getAttribute("href")).toBe("product.html?id=7");
   });
 
   it('el boton "Agregar" tiene data-id y la clase de delegacion btn-add-cart', () => {
-    document.body.innerHTML = renderProductCard(product);
+    const card = createProductCardElement(product);
+    document.body.appendChild(card);
     const button = requireElementOfType("button", HTMLButtonElement);
     expect(button.dataset.id).toBe("7");
     expect(button.classList.contains("btn-add-cart")).toBe(true);
   });
 
   it("usa badge-tazon para categoria Tazón", () => {
-    document.body.innerHTML = renderProductCard({ ...product, category: "Tazón" });
+    const card = createProductCardElement({ ...product, category: "Tazón" });
+    document.body.appendChild(card);
     const badge = requireElementOfType(".badge", HTMLSpanElement);
     expect(badge.classList.contains("badge-tazon")).toBe(true);
   });

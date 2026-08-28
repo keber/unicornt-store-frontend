@@ -1,66 +1,56 @@
 import { formatPrice } from "@/lib/currency";
+import { requireElement, requireElementOfType } from "@/lib/dom";
 import { MAX_QUANTITY, MIN_QUANTITY } from "@/lib/quantity";
 import { productImageSrc, type ProductModel } from "@/models/product.model";
+import templateHtml from "./ProductDetail_template.html?raw";
+
+const TEMPLATE = document.createElement("template");
+TEMPLATE.innerHTML = templateHtml;
 
 function categoryBadgeClass(product: ProductModel): "badge-polera" | "badge-tazon" {
   return product.category === "Polera" ? "badge-polera" : "badge-tazon";
 }
 
+function cloneProductDetailTemplate(): DocumentFragment {
+  const templateRoot = TEMPLATE.content.cloneNode(true);
+
+  if (!(templateRoot instanceof DocumentFragment)) {
+    throw new TypeError("ProductDetail_template.html debe contener un fragmento HTML.");
+  }
+
+  return templateRoot;
+}
+
+/**
+ * Crea un detalle de producto mediante nodos DOM.
+ *
+ * El template contiene solamente markup constante. Los detalles del producto
+ * se asignan con textContent, propiedades y dataset, por lo que nunca se
+ * interpretan como HTML.
+ */
+
 /** Detalle de producto. Misma estructura/ids que el renderProductDetail() legado. */
-export function renderProductDetail(product: ProductModel): string {
-  return `
-    <div class="col-12 col-md-6">
-      <div class="detail-img-wrapper rounded-4 overflow-hidden shadow">
-        <img
-          src="${productImageSrc(product, "detail")}"
-          alt="${product.name}"
-          class="img-fluid w-100"
-        />
-      </div>
-    </div>
+export function createProductDetail(product: ProductModel): DocumentFragment {
+  const detail = cloneProductDetailTemplate();
 
-    <div class="col-12 col-md-6">
-      <span class="badge ${categoryBadgeClass(product)} mb-2">${product.category}</span>
-      <h1 class="fw-bold fs-3 mb-1">${product.name}</h1>
-      <p class="fs-2 fw-bold text-accent mb-3">${formatPrice(product.price)}</p>
-      <p class="text-muted mb-4">${product.description}</p>
+  const image = requireElementOfType(".product-detail__img", HTMLImageElement, detail);
+  image.src = productImageSrc(product, "detail");
+  image.alt = product.name;
 
-      <div class="d-flex align-items-center gap-3 mb-4">
-        <label class="fw-semibold" for="qty-input">Cantidad:</label>
-        <div class="input-group qty-selector">
-          <button
-            class="btn btn-outline-secondary"
-            type="button"
-            id="qty-minus"
-            aria-label="Reducir cantidad"
-          >−</button>
-          <input
-            type="number"
-            id="qty-input"
-            class="form-control text-center"
-            value="1"
-            min="${String(MIN_QUANTITY)}"
-            max="${String(MAX_QUANTITY)}"
-            aria-label="Cantidad"
-            style="max-width: 60px;"
-          />
-          <button
-            class="btn btn-outline-secondary"
-            type="button"
-            id="qty-plus"
-            aria-label="Aumentar cantidad"
-          >+</button>
-        </div>
-      </div>
+  const category = requireElement(".product-detail__category", detail);
+  category.classList.add(categoryBadgeClass(product));
+  category.textContent = product.category;
 
-      <div class="d-flex flex-wrap gap-3">
-        <button class="btn btn-brand btn-lg flex-grow-1" type="button" id="btn-add-detail">
-          <i class="fa-solid fa-cart-plus me-2"></i>Agregar al carrito
-        </button>
-        <a href="index.html" class="btn btn-outline-brand btn-lg">
-          <i class="fa-solid fa-arrow-left me-1"></i>Volver
-        </a>
-      </div>
-    </div>
-  `;
+  requireElement(".product-detail__name", detail).textContent = product.name;
+
+  requireElement(".product-detail__price", detail).textContent = formatPrice(product.price);
+
+  requireElement(".product-detail__description", detail).textContent = product.description;
+
+  const qtyInput = requireElementOfType("#qty-input", HTMLInputElement, detail);
+  qtyInput.min = String(MIN_QUANTITY);
+  qtyInput.max = String(MAX_QUANTITY);
+  qtyInput.value = String(MIN_QUANTITY);
+
+  return detail;
 }
