@@ -1,4 +1,7 @@
-# Simple workflow for deploying static content to GitHub Pages
+# Deploy a GitHub Pages: construye con Vite y publica unicamente dist/
+# (Etapa 8). El dominio personalizado, si corresponde, se configura en
+# Settings > Pages del repositorio -- no requiere un archivo CNAME
+# cuando el deploy es via GitHub Actions.
 name: Deploy static content to Pages
 
 on:
@@ -22,22 +25,52 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies (lockfile exacto)
+        run: npm ci
+
+      # El deploy no depende de que el workflow de CI haya corrido o
+      # pasado por separado: valida aca mismo, en el mismo run, para
+      # que nunca se publique codigo sin pasar el gate completo.
+      - name: Formato (Prettier)
+        run: npm run format:check
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Pruebas (Vitest)
+        run: npm test
+
+      - name: Build (tsc + Vite)
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Solo dist/: el resultado compilado, no el repositorio crudo.
+          path: "dist"
+
   deploy:
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
