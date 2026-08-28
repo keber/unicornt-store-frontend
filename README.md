@@ -1,3 +1,4 @@
+[![QA E2E](https://github.com/keber/QA-UnicorntStore-refactor/actions/workflows/qa-e2e.yml/badge.svg)](https://github.com/keber/QA-UnicorntStore-refactor/actions/workflows/qa-e2e.yml)
 # Unicorn't Store — Frontend
 
 Tienda en línea de poleras y tazones geek/memes. Frontend construido con Vite + TypeScript estricto, sin frameworks de UI, con Bootstrap 5 como dependencia de npm.
