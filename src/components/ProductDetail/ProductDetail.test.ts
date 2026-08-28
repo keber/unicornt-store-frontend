@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { renderProductDetail } from "@/components/ProductDetail/ProductDetail";
+import { createProductDetail } from "@/components/ProductDetail/ProductDetail";
 import { requireElementOfType } from "@/lib/dom";
 import type { ProductModel } from "@/models/product.model";
 
@@ -17,9 +17,9 @@ beforeEach(() => {
   document.body.innerHTML = "";
 });
 
-describe("renderProductDetail", () => {
-  it("renderiza la imagen de detalle (.webp sin sufijo), nombre, precio y descripcion", () => {
-    document.body.innerHTML = renderProductDetail(product);
+describe("createProductDetail", () => {
+  it("crea la imagen de detalle (.webp sin sufijo), nombre, precio y descripcion", () => {
+    document.body.append(createProductDetail(product));
 
     const img = requireElementOfType("img", HTMLImageElement);
     expect(img.src).toContain("assets/img/enigma/enigma-blue-print.webp");
@@ -31,7 +31,7 @@ describe("renderProductDetail", () => {
   });
 
   it("incluye el selector de cantidad con min/max y valor inicial 1", () => {
-    document.body.innerHTML = renderProductDetail(product);
+    document.body.append(createProductDetail(product));
 
     const qtyInput = requireElementOfType("#qty-input", HTMLInputElement);
     expect(qtyInput.value).toBe("1");
@@ -42,7 +42,7 @@ describe("renderProductDetail", () => {
   });
 
   it('incluye el boton "Agregar al carrito" con el id que espera product.view.ts', () => {
-    document.body.innerHTML = renderProductDetail(product);
+    document.body.append(createProductDetail(product));
     expect(() => requireElementOfType("#btn-add-detail", HTMLButtonElement)).not.toThrow();
   });
 });

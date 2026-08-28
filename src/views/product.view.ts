@@ -1,4 +1,4 @@
-import { renderProductDetail } from "@/components/ProductDetail/ProductDetail";
+import { createProductDetail } from "@/components/ProductDetail/ProductDetail";
 import {
   RETRY_BUTTON_SELECTOR,
   renderErrorFallback,
@@ -94,7 +94,7 @@ async function renderProduct(container: Element): Promise<void> {
     requireElement(BREADCRUMB_NAME_SELECTOR).textContent = product.name;
     document.title = `${product.name} - Unicorn't Store`;
 
-    container.innerHTML = renderProductDetail(product);
+    container.appendChild(createProductDetail(product));
     const qtyInput = wireQuantitySelector(container);
     wireAddToCart(container, product, qtyInput);
     initCartView(products);
