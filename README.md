@@ -1,4 +1,4 @@
-[![E2E](https://github.com/keber/unicornt-store-frontend/actions/workflows/e2e.yml/badge.svg)](https://github.com/keber/unicornt-store-frontend/actions/workflows/e2e-live.yml)
+[![E2E](https://github.com/keber/unicornt-store-frontend/actions/workflows/e2e-live.yml/badge.svg)](https://github.com/keber/unicornt-store-frontend/actions/workflows/e2e-live.yml)
 [![E2E Report](https://img.shields.io/badge/E2E%20report-live-brightgreen)](https://unicornt-store.keber.cl/e2e/main/)
 [![Coverage Report](https://img.shields.io/badge/code%20coverage-live-brightgreen)](https://keber.dev/QA-UnicorntStore-refactor/coverage/)
 [![Powered by qa-framework](https://img.shields.io/badge/powered%20by-qa--framework%20v1.11.3-blue)](https://github.com/keber/qa-framework)
