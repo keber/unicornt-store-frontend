@@ -225,6 +225,16 @@ npm run build
 - Eliminar `assets/js/app.js`, `cart.js` y `products.js` solo después de la paridad.
 - Actualizar README, arquitectura, comandos y changelog.
 
+## Nota: conservación del catálogo estático para una futura fase con backend
+
+Este refactor es solo de frontend. Cuando se incorpore un backend real (fuera de alcance aquí), **no eliminar** `public/assets/img/` ni `public/data/products.json` asumiendo que el backend los reemplaza 1:1. Se conservan como modo degradado de solo lectura, con alcance acotado:
+
+- **Qué cubre**: catálogo y detalle de producto cuando el backend no responde.
+- **Qué NO cubre**: carrito, checkout ni ninguna operación que dependa de estado vivo del backend. En modo degradado esas acciones muestran error o quedan deshabilitadas; nunca simulan una funcionalidad de escritura que en realidad no existe.
+- **Supuesto**: el fallback tiene sentido mientras las imágenes dependan de la misma disponibilidad que el backend (p. ej. un monolito que sirve API y estáticos juntos). Si más adelante las imágenes se separan a un storage/CDN independiente, revisar si el fallback local sigue aportando algo.
+- **Riesgo conocido**: el snapshot estático puede desincronizarse del catálogo real (precios, productos descontinuados) si el backend permite catálogo dinámico. Aceptable mientras el catálogo sea prácticamente estático.
+- **Trigger de revisión**: la primera vez que el backend permita alta/baja/edición de productos sin pasar por un redeploy del frontend — ahí hay que decidir si el snapshot se regenera en build o si el fallback se retira.
+
 ## Definición de terminado
 
 | Rúbrica | Evidencia para cerrar |

@@ -1,5 +1,5 @@
-[![QA E2E](https://github.com/keber/QA-UnicorntStore-refactor/actions/workflows/qa-e2e.yml/badge.svg)](https://github.com/keber/QA-UnicorntStore-refactor/actions/workflows/qa-e2e.yml)
-[![E2E Report](https://img.shields.io/badge/E2E%20report-live-brightgreen)](https://keber.dev/QA-UnicorntStore-refactor/)
+[![E2E](https://github.com/keber/unicornt-store-frontend/actions/workflows/e2e.yml/badge.svg)](https://github.com/keber/unicornt-store-frontend/actions/workflows/e2e.yml)
+[![E2E Report](https://img.shields.io/badge/E2E%20report-live-brightgreen)](https://unicornt-store.keber.cl/e2e/main/)
 [![Coverage Report](https://img.shields.io/badge/code%20coverage-live-brightgreen)](https://keber.dev/QA-UnicorntStore-refactor/coverage/)
 [![Powered by qa-framework](https://img.shields.io/badge/powered%20by-qa--framework%20v1.11.3-blue)](https://github.com/keber/qa-framework)
 [![Playwright](https://img.shields.io/badge/tested%20with-Playwright-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
@@ -106,10 +106,14 @@ npm test
 
 ## CI/CD
 
-Dos workflows de GitHub Actions, separados a propósito:
+Cuatro workflows de GitHub Actions, separados a propósito:
 
 - **`.github/workflows/ci.yml`** — corre en cada push a `main`/`refactor`/`etapas/**` y en PRs: `npm ci` → `format:check` → `lint` → `test` → `build`. Nunca publica nada, solo valida.
-- **`.github/workflows/static.yml`** — se dispara con cada push a `main`. Corre el mismo gate de calidad y, si pasa, construye con Vite y publica **únicamente `dist/`** a GitHub Pages (no el repositorio completo). El dominio personalizado se configura en *Settings → Pages* del repositorio, no requiere un archivo `CNAME` en el código al desplegar vía GitHub Actions.
+- **`.github/workflows/static.yml`** — se dispara con cada push a `main`. Corre el mismo gate de calidad y, si pasa, construye con Vite y publica el contenido de `dist/` a la rama **`gh-pages`**, que es el *source* de GitHub Pages. La app se sirve en la raíz del dominio (`unicornt-store.keber.cl`); el dominio y la desactivación de Jekyll se fijan con los archivos `CNAME` y `.nojekyll` que el deploy escribe en la rama. Cada deploy es un único commit (historial plano) y preserva todo lo que cuelga de `/e2e/`.
+- **`.github/workflows/e2e.yml`** — en PRs hacia `main`/`refactor` y en pushes a `refactor`. Construye el `dist/` de la rama, lo sirve en `localhost` y corre contra él la suite Playwright de `keber/QA-UnicorntStore-refactor`. Publica el reporte HTML en `gh-pages` bajo `/e2e/<rama>/`, navegable en `https://unicornt-store.keber.cl/e2e/<rama>/`. El resultado de los tests aparece como check del PR pero **no es bloqueante** (la suite está en migración).
+- **`.github/workflows/e2e-live.yml`** — se dispara cuando `static.yml` termina en `main`. Espera a que Pages sirva el commit recién desplegado (poll a `/version.json`), corre la misma suite contra el sitio ya publicado y actualiza el reporte en `/e2e/main/` (al que apunta el badge). No bloquea nada.
+
+Los reportes por rama se listan en [`unicornt-store.keber.cl/e2e/`](https://unicornt-store.keber.cl/e2e/).
 
 ---
 

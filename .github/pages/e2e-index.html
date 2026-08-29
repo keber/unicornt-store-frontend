@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Reportes E2E — Unicorn't Store</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --brand: #7c3aed;
+        --fg: #1e1b4b;
+        --muted: #6b7280;
+        --bg: #ffffff;
+        --card: #f5f3ff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --fg: #ede9fe;
+          --muted: #9ca3af;
+          --bg: #14121f;
+          --card: #221c33;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 3rem 1.25rem;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      main {
+        max-width: 40rem;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.25rem;
+        font-size: 1.5rem;
+      }
+      p.lead {
+        margin: 0 0 2rem;
+        color: var(--muted);
+      }
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0.75rem;
+      }
+      a.report {
+        display: block;
+        padding: 1rem 1.25rem;
+        background: var(--card);
+        border-radius: 0.75rem;
+        text-decoration: none;
+        color: inherit;
+        font-weight: 600;
+        border: 1px solid transparent;
+      }
+      a.report:hover {
+        border-color: var(--brand);
+      }
+      a.report span {
+        display: block;
+        font-weight: 400;
+        font-size: 0.875rem;
+        color: var(--muted);
+      }
+      footer {
+        margin-top: 2.5rem;
+        font-size: 0.8125rem;
+        color: var(--muted);
+      }
+      footer a {
+        color: var(--brand);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Reportes E2E</h1>
+      <p class="lead">
+        Suite Playwright (<code>keber/QA-UnicorntStore-refactor</code>) ejecutada por rama. Cada
+        reporte refleja el estado de esa rama en su ultimo run.
+      </p>
+      <ul>
+        <li>
+          <a class="report" href="./main/">
+            main
+            <span>Ultimo run contra el sitio publicado tras el merge.</span>
+          </a>
+        </li>
+        <li>
+          <a class="report" href="./refactor/">
+            refactor
+            <span>Rama de integracion. Run contra su build, no contra produccion.</span>
+          </a>
+        </li>
+      </ul>
+      <footer>
+        Otras ramas publican en <code>/e2e/&lt;rama&gt;/</code> mientras tienen un PR abierto o
+        reciben pushes. Volver a <a href="/">unicornt-store.keber.cl</a>.
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,96 @@
+# E2E contra el sitio ya publicado. Se dispara cuando "Deploy static content
+# to Pages" termina en main: espera a que Pages sirva el commit desplegado
+# (poll a /version.json), corre la suite Playwright contra
+# https://unicornt-store.keber.cl y publica el reporte en gh-pages/e2e/main/.
+#
+# NO es bloqueante de nada (nada depende de este workflow). Su unico efecto
+# es refrescar el reporte al que apunta el badge del README.
+name: E2E (sitio en vivo)
+
+on:
+  workflow_run:
+    workflows: ["Deploy static content to Pages"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  e2e-live:
+    # Solo si el deploy fue exitoso y venia de main.
+    if: >-
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: "gh-pages-publish"
+      cancel-in-progress: false
+    steps:
+      - name: Checkout frontend (default branch)
+        uses: actions/checkout@v4
+
+      - name: Checkout suite E2E (repo QA)
+        uses: actions/checkout@v4
+        with:
+          repository: keber/QA-UnicorntStore-refactor
+          ref: main
+          path: qa-suite
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Esperar a que Pages sirva el commit desplegado
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          for i in $(seq 1 60); do
+            GOT=$(curl -sf https://unicornt-store.keber.cl/version.json \
+              | sed -n 's/.*"sha":"\([^"]*\)".*/\1/p' || true)
+            if [ "$GOT" = "$EXPECTED_SHA" ]; then
+              echo "propagado: $GOT"
+              exit 0
+            fi
+            echo "esperando propagacion... (got=${GOT:-none} want=$EXPECTED_SHA)"
+            sleep 10
+          done
+          echo "::error::version.json no reflejo $EXPECTED_SHA tras 10 min"
+          exit 1
+
+      - name: Install dependencies (suite E2E)
+        working-directory: qa-suite/qa/07-automation/e2e
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: qa-suite/qa/07-automation/e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests (sitio en vivo)
+        working-directory: qa-suite/qa/07-automation/e2e
+        # No bloqueante: aunque falle, se publica el reporte con los fallos.
+        continue-on-error: true
+        env:
+          QA_BASE_URL: https://unicornt-store.keber.cl
+          CI: true
+        run: npx playwright test --project=chromium --reporter=list,html
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-live
+          path: qa-suite/qa/07-automation/e2e/playwright-report/
+          retention-days: 14
+
+      - name: Publicar reporte a gh-pages (e2e/main)
+        uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4.9.0
+        with:
+          folder: qa-suite/qa/07-automation/e2e/playwright-report
+          branch: gh-pages
+          target-folder: e2e/main
+          single-commit: true
+          clean: true
+          git-config-name: github-actions[bot]
+          git-config-email: 41898282+github-actions[bot]@users.noreply.github.com
