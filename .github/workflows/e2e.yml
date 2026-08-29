@@ -1,0 +1,86 @@
+# Gate end-to-end (Etapa 9): corre la suite Playwright que vive en el repo
+# keber/QA-UnicorntStore-refactor contra el build de ESTE PR, no contra
+# produccion. Por eso no gatillamos el workflow del repo QA -- ese apunta a
+# https://unicornt-store.keber.cl y validaria el sitio ya publicado, que no
+# es lo que el PR cambia. Aca hacemos checkout de la suite, servimos el
+# dist/ recien construido en localhost y apuntamos QA_BASE_URL ahi.
+name: E2E
+
+on:
+  pull_request:
+    branches: ["main", "refactor"]
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+# El job corre siempre (sin filtros de paths): un required status check que
+# queda "skipped" deja el PR pendiente para siempre en vez de aprobarlo.
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout frontend (el PR)
+        uses: actions/checkout@v4
+
+      - name: Checkout suite E2E (repo QA)
+        uses: actions/checkout@v4
+        with:
+          # Repo publico: no requiere token. `ref` fijo en main acopla este
+          # gate a la punta de la suite -- un commit alla puede poner rojo
+          # el CI de aca sin que nadie toque el frontend. Cambiar a un tag
+          # si ese acoplamiento molesta.
+          repository: keber/QA-UnicorntStore-refactor
+          ref: main
+          path: qa-suite
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies (frontend)
+        run: npm ci
+
+      - name: Build (tsc + Vite)
+        run: npm run build
+
+      - name: Servir dist/ en localhost:4173
+        run: |
+          nohup npx vite preview --port 4173 --strictPort > preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf -o /dev/null http://localhost:4173/; then
+              echo "preview arriba"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::vite preview no respondio en 30s"
+          cat preview.log
+          exit 1
+
+      - name: Install dependencies (suite E2E)
+        working-directory: qa-suite/qa/07-automation/e2e
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: qa-suite/qa/07-automation/e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: qa-suite/qa/07-automation/e2e
+        env:
+          # Las specs navegan solo con rutas relativas ("/",
+          # "/product.html?id=N"), asi que basta con mover el baseURL.
+          QA_BASE_URL: http://localhost:4173
+          CI: true
+        run: npx playwright test --project=chromium --reporter=list,html
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: qa-suite/qa/07-automation/e2e/playwright-report/
+          retention-days: 14
