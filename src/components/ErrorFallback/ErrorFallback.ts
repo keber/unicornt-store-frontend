@@ -1,13 +1,35 @@
+import { requireElement } from "@/lib/dom";
+import templateHtml from "./ErrorFallback_template.html?raw";
+
 export const RETRY_BUTTON_SELECTOR = "[data-action='retry']";
 
-/** Fallback visual con opcion de reintentar; quien monta esto le agrega el listener de retry (ver catalog.view.ts / product.view.ts). */
-export function renderErrorFallback(message: string): string {
-  return `
-    <div class="col-12 text-center py-5">
-      <i class="fa-solid fa-triangle-exclamation fa-2x text-danger mb-3 d-block"></i>
-      <p class="text-muted mb-3">${message}</p>
-      <button type="button" class="btn btn-outline-brand" data-action="retry">
-        <i class="fa-solid fa-rotate-right me-1"></i>Reintentar
-      </button>
-    </div>`;
+const TEMPLATE = document.createElement("template");
+TEMPLATE.innerHTML = templateHtml;
+
+function cloneErrorFallbackTemplate(): HTMLElement {
+  const templateRoot = TEMPLATE.content.firstElementChild;
+  const clone = templateRoot?.cloneNode(true);
+
+  if (!(clone instanceof HTMLElement)) {
+    throw new TypeError("ErrorFallback_template.html debe contener un elemento HTML raíz.");
+  }
+
+  return clone;
+}
+
+/**
+ * Crea el fallback de error mediante nodos DOM.
+ *
+ * El template contiene solamente markup constante. El mensaje se asigna con
+ * textContent, por lo que nunca se interpreta como HTML.
+ *
+ * Quien monta esto le agrega el listener de retry (ver catalog.view.ts /
+ * product.view.ts).
+ */
+export function createErrorFallback(message: string): HTMLElement {
+  const fallback = cloneErrorFallbackTemplate();
+
+  requireElement(".error-fallback__message", fallback).textContent = message;
+
+  return fallback;
 }

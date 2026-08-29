@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { renderCartItemsHtml } from "@/components/CartPanel/CartPanel";
+import { createCartItems } from "@/components/CartPanel/CartPanel";
 import { requireElementOfType } from "@/lib/dom";
 import type { CartLine } from "@/services/cart.service";
 
@@ -21,18 +21,23 @@ beforeEach(() => {
   document.body.innerHTML = "";
 });
 
-describe("renderCartItemsHtml", () => {
+describe("createCartItems", () => {
   it('muestra el mensaje de "carrito vacio" cuando no hay lineas', () => {
-    document.body.innerHTML = renderCartItemsHtml([]);
+    const items = createCartItems([]);
+    document.body.replaceChildren(...items);
+
+    expect(items).toHaveLength(1);
     expect(document.body.textContent).toContain("El carrito está vacío.");
   });
 
   it("renderiza nombre, precio unitario, cantidad y subtotal por linea", () => {
-    document.body.innerHTML = renderCartItemsHtml([line]);
+    const items = createCartItems([line]);
+    document.body.replaceChildren(...items);
 
-    expect(document.body.textContent).toContain("Polera 'I Can Explain It To You'");
-    expect(document.body.textContent).toContain("$13.990 c/u");
-    expect(document.body.textContent).toContain("$27.980");
+    const item = requireElementOfType(".cart-item", HTMLElement);
+    expect(item.textContent).toContain("Polera 'I Can Explain It To You'");
+    expect(item.textContent).toContain("$13.990 c/u");
+    expect(item.textContent).toContain("$27.980");
 
     const qtyInput = requireElementOfType(".cart-qty-input", HTMLInputElement);
     expect(qtyInput.value).toBe("2");
@@ -40,7 +45,8 @@ describe("renderCartItemsHtml", () => {
   });
 
   it("cada linea trae los botones de +/-/eliminar con el mismo data-id", () => {
-    document.body.innerHTML = renderCartItemsHtml([line]);
+    const items = createCartItems([line]);
+    document.body.replaceChildren(...items);
 
     const minus = requireElementOfType(".btn-cart-minus", HTMLButtonElement);
     const plus = requireElementOfType(".btn-cart-plus", HTMLButtonElement);
@@ -58,7 +64,8 @@ describe("renderCartItemsHtml", () => {
       subtotal: 14990,
     };
 
-    document.body.innerHTML = renderCartItemsHtml([line, secondLine]);
+    const items = createCartItems([line, secondLine]);
+    document.body.replaceChildren(...items);
 
     expect(document.querySelectorAll(".cart-item")).toHaveLength(2);
     expect(document.body.textContent).toContain("Polera 'Cloud Architect'");

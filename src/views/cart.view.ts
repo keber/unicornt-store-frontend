@@ -7,7 +7,7 @@ import {
   requireElementOfType,
 } from "@/lib/dom";
 import { MAX_QUANTITY, parseQuantityInput } from "@/lib/quantity";
-import { renderCartItemsHtml } from "@/components/CartPanel/CartPanel";
+import { createCartItems } from "@/components/CartPanel/CartPanel";
 import type { CartModel } from "@/models/cart.model";
 import type { ProductModel } from "@/models/product.model";
 import {
@@ -53,7 +53,7 @@ function renderCartPanel(products: readonly ProductModel[]): void {
   const footerEl = requireElementOfType(CART_FOOTER_SELECTOR, HTMLDivElement);
   const totalEl = requireElement(CART_TOTAL_SELECTOR);
 
-  itemsEl.innerHTML = renderCartItemsHtml(lines);
+  itemsEl.replaceChildren(...createCartItems(lines));
   footerEl.style.display = lines.length === 0 ? "none" : "block";
   totalEl.textContent = formatPrice(calculateTotal(cart, products));
 }

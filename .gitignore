@@ -1,9 +1,16 @@
 prepros.config
 node_modules/
 assets/img/originals/
-.claude
+.claude/skills/
+.claude/agents/
 .vscode/
 dist/
 *.tsbuildinfo
 .playwright-cli/
 debug.log
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
