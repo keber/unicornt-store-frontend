@@ -1,31 +1,38 @@
-# Deploy a GitHub Pages: construye con Vite y publica unicamente dist/
-# (Etapa 8). El dominio personalizado, si corresponde, se configura en
-# Settings > Pages del repositorio -- no requiere un archivo CNAME
-# cuando el deploy es via GitHub Actions.
+# Deploy a GitHub Pages (Etapa 8, esquema rama gh-pages).
+#
+# El source de Pages es la rama gh-pages ("deploy from branch"), no el metodo
+# actions/deploy-pages. En esa rama conviven:
+#   /                 -> la app (contenido de dist/), servida en la raiz del dominio
+#   /e2e/<rama>/       -> reportes Playwright por rama (los publican e2e.yml y
+#                         e2e-live.yml; este workflow NO los toca -- clean-exclude)
+#   /version.json      -> { "sha": "<commit>" }, marcador que e2e-live.yml consulta
+#                         para saber que la version desplegada ya esta propagada
+#   /CNAME /.nojekyll  -> dominio personalizado y desactivar Jekyll
+#
+# Rollback a metodo anterior:
+#   gh api -X PUT repos/keber/unicornt-store-frontend/pages -f build_type=workflow
+#   y re-ejecutar la version previa de este archivo.
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# Empujar a gh-pages requiere escritura de contenidos. Ya no aplican
+# pages: write / id-token: write (eran del metodo actions/deploy-pages).
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Serializa TODA escritura a gh-pages: este workflow, e2e.yml (publish-report)
+# y e2e-live.yml empujan a la misma rama; un push concurrente falla por
+# non-fast-forward. cancel-in-progress: false -> nunca se aborta un deploy.
 concurrency:
-  group: "pages"
+  group: "gh-pages-publish"
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -40,9 +47,9 @@ jobs:
       - name: Install dependencies (lockfile exacto)
         run: npm ci
 
-      # El deploy no depende de que el workflow de CI haya corrido o
-      # pasado por separado: valida aca mismo, en el mismo run, para
-      # que nunca se publique codigo sin pasar el gate completo.
+      # El deploy no depende de que el workflow de CI haya corrido o pasado
+      # por separado: valida aca mismo, en el mismo run, para que nunca se
+      # publique codigo sin pasar el gate completo.
       - name: Formato (Prettier)
         run: npm run format:check
 
@@ -55,22 +62,28 @@ jobs:
       - name: Build (tsc + Vite)
         run: npm run build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      # Archivos de sitio que Vite no genera. Se escriben DESPUES del build
+      # porque `vite build` vacia dist/.
+      - name: Archivos de Pages (CNAME, .nojekyll, version.json, indice e2e)
+        run: |
+          echo "unicornt-store.keber.cl" > dist/CNAME
+          touch dist/.nojekyll
+          printf '{"sha":"%s"}\n' "${{ github.sha }}" > dist/version.json
+          mkdir -p dist/e2e
+          cp .github/pages/e2e-index.html dist/e2e/index.html
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publicar dist/ a gh-pages
+        uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4.9.0
         with:
-          # Solo dist/: el resultado compilado, no el repositorio crudo.
-          path: "dist"
-
-  deploy:
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+          folder: dist
+          branch: gh-pages
+          # Historial plano: cada deploy fuerza un unico commit (orphan).
+          single-commit: true
+          clean: true
+          # Preserva los reportes por rama que publican los otros workflows.
+          # El indice (e2e/index.html) SI se actualiza desde dist/e2e/.
+          clean-exclude: |
+            e2e/
+            e2e/**
+          git-config-name: github-actions[bot]
+          git-config-email: 41898282+github-actions[bot]@users.noreply.github.com
