@@ -1,8 +1,8 @@
 prepros.config
 node_modules/
 assets/img/originals/
-.claude/*
-!.claude/settings.json
+.claude/skills/
+.claude/agents/
 .vscode/
 dist/
 *.tsbuildinfo
