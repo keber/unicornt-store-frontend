@@ -5,7 +5,15 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**", "assets/**", "scripts/**"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "assets/**",
+      "scripts/**",
+      // Reportes generados por `npm run test:coverage` / `test:report`.
+      "coverage/**",
+      "html/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,

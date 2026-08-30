@@ -5,6 +5,8 @@ assets/img/originals/
 .claude/agents/
 .vscode/
 dist/
+coverage/
+html/
 *.tsbuildinfo
 .playwright-cli/
 debug.log

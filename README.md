@@ -1,6 +1,8 @@
+[![CI](https://github.com/keber/unicornt-store-frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/keber/unicornt-store-frontend/actions/workflows/ci.yml)
+[![Unit tests](https://github.com/keber/unicornt-store-frontend/actions/workflows/unit-report.yml/badge.svg)](https://unicornt-store.keber.cl/unit/main/)
+[![Coverage](https://unicornt-store.keber.cl/unit/main/badges/coverage.svg)](https://unicornt-store.keber.cl/unit/main/coverage/)
 [![E2E](https://github.com/keber/unicornt-store-frontend/actions/workflows/e2e-live.yml/badge.svg)](https://github.com/keber/unicornt-store-frontend/actions/workflows/e2e-live.yml)
 [![E2E Report](https://img.shields.io/badge/E2E%20report-live-brightgreen)](https://unicornt-store.keber.cl/e2e/main/)
-[![Coverage Report](https://img.shields.io/badge/code%20coverage-live-brightgreen)](https://keber.dev/QA-UnicorntStore-refactor/coverage/)
 [![Powered by qa-framework](https://img.shields.io/badge/powered%20by-qa--framework%20v1.11.3-blue)](https://github.com/keber/qa-framework)
 [![Playwright](https://img.shields.io/badge/tested%20with-Playwright-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
 
@@ -41,7 +43,7 @@ El proyecto pasó por una refactorización completa desde una base 100% JavaScri
 | UI | Bootstrap 5 (dependencia npm, no CDN) + CSS custom con variables |
 | Iconografía | Font Awesome 6.5.1 (CDN) |
 | Lint / formato | ESLint (flat config, `typescript-eslint` strict + stylistic) / Prettier |
-| Pruebas | Vitest + jsdom |
+| Pruebas | Vitest + jsdom (cobertura con `@vitest/coverage-v8`) |
 | Persistencia | `localStorage`, validado en runtime (nunca se confía en `JSON.parse` a ciegas) |
 | CI / Deploy | GitHub Actions — ver [CI/CD](#cicd) |
 | Imágenes | WebP optimizadas con `sharp` (Node.js, solo en desarrollo) |
@@ -88,6 +90,8 @@ npm run dev
 | `npm run preview` | Sirve `dist/` localmente, para probar el build de producción tal cual se despliega |
 | `npm test` | Corre la suite de Vitest una vez |
 | `npm run test:watch` | Vitest en modo watch |
+| `npm run test:coverage` | Vitest una vez + reporte de cobertura (v8) en `coverage/` |
+| `npm run test:report` | Cobertura + reporte HTML de Vitest en `html/`; es lo que el CI empaqueta y publica |
 | `npm run lint` | ESLint sobre todo `src/` y los archivos de configuración |
 | `npm run format` / `npm run format:check` | Prettier, aplica o solo verifica |
 | `npm run process-images` | Regenera las 3 variantes WebP por producto (ver [Imágenes](#imágenes)) |
@@ -102,14 +106,26 @@ Vitest + jsdom, con tests colocados junto al código que prueban (`*.test.ts`). 
 npm test
 ```
 
+### Cobertura y reporte publicado
+
+`npm run test:coverage` genera el reporte de cobertura (provider `v8`) en `coverage/`. En CI, el workflow **`.github/workflows/unit-report.yml`** se encarga del resto:
+
+- **En cada PR** — [`hyperse-io/vitest-coverage-reporter`](https://github.com/marketplace/actions/hyperse-vitest-coverage-reporter) publica una tabla de cobertura como comentario del PR y como _step-summary_ del run. No publica nada a Pages.
+- **En cada push a `main`/`refactor`** — empaqueta el reporte HTML de Vitest y el de cobertura, genera el badge SVG de cobertura con [`wjervis7/vitest-badge-action`](https://github.com/marketplace/actions/vitest-badge-action) (sin subirlo a ningún Gist) y publica todo en `gh-pages` bajo `/unit/<rama>/`:
+  - **Reporte de pruebas** — [`unicornt-store.keber.cl/unit/main/tests/`](https://unicornt-store.keber.cl/unit/main/tests/)
+  - **Reporte de cobertura** — [`unicornt-store.keber.cl/unit/main/coverage/`](https://unicornt-store.keber.cl/unit/main/coverage/)
+
+El badge _Unit tests_ de la cabecera es el estado del workflow `unit-report.yml` (verde/rojo según pase la suite); el badge _Coverage_ apunta a `/unit/main/badges/coverage.svg`, regenerado en cada push a `main`.
+
 ---
 
 ## CI/CD
 
-Cuatro workflows de GitHub Actions, separados a propósito:
+Cinco workflows de GitHub Actions, separados a propósito:
 
 - **`.github/workflows/ci.yml`** — corre en cada push a `main`/`refactor`/`etapas/**` y en PRs: `npm ci` → `format:check` → `lint` → `test` → `build`. Nunca publica nada, solo valida.
-- **`.github/workflows/static.yml`** — se dispara con cada push a `main`. Corre el mismo gate de calidad y, si pasa, construye con Vite y publica el contenido de `dist/` a la rama **`gh-pages`**, que es el *source* de GitHub Pages. La app se sirve en la raíz del dominio (`unicornt-store.keber.cl`); el dominio y la desactivación de Jekyll se fijan con los archivos `CNAME` y `.nojekyll` que el deploy escribe en la rama. Cada deploy es un único commit (historial plano) y preserva todo lo que cuelga de `/e2e/`.
+- **`.github/workflows/unit-report.yml`** — en PRs hacia `main`/`refactor`, en pushes a esas ramas y en `workflow_dispatch`. El job `unit` corre Vitest con cobertura (`json` + `json-summary` + `html`) y deja la tabla de cobertura como comentario del PR / step-summary (`hyperse-io/vitest-coverage-reporter`). El job `publish` solo corre en push (no en PR): genera el badge SVG de cobertura (`wjervis7/vitest-badge-action`, sin Gist) y publica el reporte HTML + el de cobertura en `gh-pages/unit/<rama>/`. Si las pruebas fallan el run queda rojo, pero el reporte se publica igual mostrando el fallo. No bloquea nada.
+- **`.github/workflows/static.yml`** — se dispara con cada push a `main`. Corre el mismo gate de calidad y, si pasa, construye con Vite y publica el contenido de `dist/` a la rama **`gh-pages`**, que es el *source* de GitHub Pages. La app se sirve en la raíz del dominio (`unicornt-store.keber.cl`); el dominio y la desactivación de Jekyll se fijan con los archivos `CNAME` y `.nojekyll` que el deploy escribe en la rama. Cada deploy es un único commit (historial plano) y preserva todo lo que cuelga de `/e2e/` y `/unit/`.
 - **`.github/workflows/e2e.yml`** — en PRs hacia `main`/`refactor` y en pushes a `refactor`. Construye el `dist/` de la rama, lo sirve en `localhost` y corre contra él la suite Playwright de `keber/QA-UnicorntStore-refactor`. Publica el reporte HTML en `gh-pages` bajo `/e2e/<rama>/`, navegable en `https://unicornt-store.keber.cl/e2e/<rama>/`. El resultado de los tests aparece como check del PR pero **no es bloqueante** (la suite está en migración).
 - **`.github/workflows/e2e-live.yml`** — se dispara cuando `static.yml` termina en `main`. Espera a que Pages sirva el commit recién desplegado (poll a `/version.json`), corre la misma suite contra el sitio ya publicado y actualiza el reporte en `/e2e/main/` (al que apunta el badge). No bloquea nada.
 

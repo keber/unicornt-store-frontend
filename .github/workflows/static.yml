@@ -5,6 +5,8 @@
 #   /                 -> la app (contenido de dist/), servida en la raiz del dominio
 #   /e2e/<rama>/       -> reportes Playwright por rama (los publican e2e.yml y
 #                         e2e-live.yml; este workflow NO los toca -- clean-exclude)
+#   /unit/<rama>/      -> reportes de Vitest + cobertura por rama (los publica
+#                         unit-report.yml; tampoco se tocan -- clean-exclude)
 #   /version.json      -> { "sha": "<commit>" }, marcador que e2e-live.yml consulta
 #                         para saber que la version desplegada ya esta propagada
 #   /CNAME /.nojekyll  -> dominio personalizado y desactivar Jekyll
@@ -85,5 +87,7 @@ jobs:
           clean-exclude: |
             e2e/
             e2e/**
+            unit/
+            unit/**
           git-config-name: github-actions[bot]
           git-config-email: 41898282+github-actions[bot]@users.noreply.github.com
