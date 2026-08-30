@@ -23,5 +23,12 @@ export default defineConfig({
     environment: "jsdom",
     include: ["src/**/*.{test,spec}.ts"],
     css: false,
+    coverage: {
+      provider: "v8",
+      reportsDirectory: "./coverage",
+      reporter: ["text", "html", "json", "json-summary"],
+      include: ["src/**/*.ts"],
+      exclude: ["src/**/*.{test,spec}.ts", "src/**/*.d.ts"],
+    },
   },
 });
