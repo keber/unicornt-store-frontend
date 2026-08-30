@@ -36,12 +36,12 @@ jobs:
       - name: Checkout suite E2E (repo QA)
         uses: actions/checkout@v4
         with:
-          # Repo publico: no requiere token. `ref` fijo en main acopla este
-          # gate a la punta de la suite -- un commit alla puede poner rojo
-          # el CI de aca sin que nadie toque el frontend. Cambiar a un tag
-          # si ese acoplamiento molesta.
+          # Repo publico: no requiere token. Fijado a un commit en vez de `main`
+          # por reproducibilidad y cadena de suministro: un push a la suite no
+          # cambia lo que corre aca sin que se actualice este SHA a proposito
+          # (evita ademas que un commit alla ponga rojo el CI del frontend).
           repository: keber/QA-UnicorntStore-refactor
-          ref: main
+          ref: 06d9369e76a8482f0f722eb24b39edb5f095efe0 # main @ 2026-08-29
           path: qa-suite
 
       - name: Setup Node
