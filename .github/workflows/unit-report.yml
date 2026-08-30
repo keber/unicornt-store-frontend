@@ -1,16 +1,20 @@
 # Reporte de pruebas unitarias + cobertura (Vitest).
 #
-# Job `unit`   -> corre la suite con cobertura (json + json-summary + html),
-#                publica una tabla de cobertura como comentario del PR y como
-#                step-summary del run (hyperse-io/vitest-coverage-reporter) y
-#                sube coverage/ + html/ como artifact.
-# Job `publish` -> solo en push a main/refactor (no en PR): genera el badge SVG
-#                de cobertura (wjervis7/vitest-badge-action, sin subir a Gist) y
-#                publica todo en la rama gh-pages bajo /unit/<rama>/:
+# Job `unit`    -> corre la suite con cobertura (json + json-summary + html),
+#                 publica una tabla de cobertura como comentario del PR y como
+#                 step-summary del run (hyperse-io/vitest-coverage-reporter),
+#                 genera el badge SVG de cobertura (wjervis7/vitest-badge-action)
+#                 y sube coverage/ + html/ + badges/ como artifact.
+#                 Permisos: contents:read (+ pull-requests:write para el
+#                 comentario). Aca corre TODO el codigo de terceros.
+# Job `publish` -> solo en push a main/refactor (no en PR). Sin ejecutar codigo
+#                 de terceros: descarga el artifact y lo publica en la rama
+#                 gh-pages bajo /unit/<rama>/ con la unica action con escritura
+#                 (JamesIves, fijada por SHA):
 #
-#   /unit/<rama>/               -> landing (.github/pages/unit-index.html)
-#   /unit/<rama>/tests/         -> reporte HTML de Vitest
-#   /unit/<rama>/coverage/      -> reporte de cobertura (v8)
+#   /unit/<rama>/                    -> landing (.github/pages/unit-index.html)
+#   /unit/<rama>/tests/              -> reporte HTML de Vitest
+#   /unit/<rama>/coverage/           -> reporte de cobertura (v8)
 #   /unit/<rama>/badges/coverage.svg -> badge que consume el README
 #
 # El deploy usa target-folder: al escribir solo dentro de /unit/<rama>/ no toca
@@ -26,8 +30,8 @@ on:
     branches: ["main", "refactor"]
   workflow_dispatch:
 
-permissions:
-  contents: read
+# Sin permisos por defecto; cada job pide lo minimo.
+permissions: {}
 
 jobs:
   unit:
@@ -65,6 +69,23 @@ jobs:
           json-summary-path: coverage/coverage-summary.json
           json-final-path: coverage/coverage-final.json
 
+      # El badge se genera aca (job read-only), no en el job con escritura:
+      # asi el token de `contents: write` nunca ejecuta esta composite action.
+      - name: Preparar carpeta de badges
+        if: always()
+        run: mkdir -p badges
+
+      - name: Badge de cobertura (SVG)
+        if: always()
+        uses: wjervis7/vitest-badge-action@df6e1406f1da38269a4313963b16d699362ce7dc # v1.0.0
+        with:
+          result-type: lines
+          vitest-config-path: vite.config.ts
+          summary-path: coverage/coverage-summary.json
+          badge-text: coverage
+          badge-path: badges/coverage.svg
+          upload-badge: false # no subir a Gist; lo publica el job `publish`
+
       - name: Subir reportes como artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -73,6 +94,7 @@ jobs:
           path: |
             coverage/
             html/
+            badges/
           retention-days: 14
 
   publish:
@@ -91,8 +113,8 @@ jobs:
       group: "gh-pages-publish"
       cancel-in-progress: false
     steps:
-      # Necesario para vite.config.ts (lo lee el badge action) y para
-      # .github/pages/unit-index.html.
+      # Necesario solo para .github/pages/unit-index.html (no se ejecuta nada
+      # del repo aqui, solo se lee esa plantilla).
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -101,26 +123,15 @@ jobs:
         with:
           name: unit-report
 
-      - name: Preparar carpeta del sitio
-        run: mkdir -p site/coverage site/tests site/badges
-
-      - name: Badge de cobertura (SVG)
-        uses: wjervis7/vitest-badge-action@df6e1406f1da38269a4313963b16d699362ce7dc # v1.0.0
-        with:
-          result-type: lines
-          vitest-config-path: vite.config.ts
-          summary-path: coverage/coverage-summary.json
-          badge-text: coverage
-          badge-path: site/badges/coverage.svg
-          upload-badge: false # no subir a Gist; lo publicamos a Pages
-
       - name: Armar sitio del reporte
         env:
           BRANCH: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
         run: |
+          mkdir -p site/coverage site/tests site/badges
           cp -r coverage/. site/coverage/
           cp -r html/. site/tests/
+          cp badges/coverage.svg site/badges/coverage.svg
           SHORT_SHA="${SHA:0:7}"
           RUN_DATE="$(date -u '+%Y-%m-%d %H:%M UTC')"
           sed -e "s|__BRANCH__|${BRANCH}|g" \

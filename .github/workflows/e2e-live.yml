@@ -5,6 +5,17 @@
 #
 # NO es bloqueante de nada (nada depende de este workflow). Su unico efecto
 # es refrescar el reporte al que apunta el badge del README.
+#
+# Seguridad: el disparador es `workflow_run`, que corre con el contexto del
+# repo base (secrets + token). Por eso el trabajo se parte en dos:
+#   - job `e2e-live`  : contents:read. Hace checkout de la suite QA (repo
+#                       aparte) y ejecuta su `npm ci` + Playwright. Todo el
+#                       codigo de terceros vive aca, sin escritura.
+#   - job `publish`   : contents:write. NO ejecuta codigo del repo ni de la
+#                       suite: solo baja el artifact y lo publica con JamesIves
+#                       (fijada por SHA).
+# Ademas la suite QA se fija a un commit concreto (no `main`): un push alla no
+# cambia lo que corre aca sin actualizar el SHA a proposito.
 name: E2E (sitio en vivo)
 
 on:
@@ -12,8 +23,7 @@ on:
     workflows: ["Deploy static content to Pages"]
     types: [completed]
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   e2e-live:
@@ -23,9 +33,8 @@ jobs:
           github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    concurrency:
-      group: "gh-pages-publish"
-      cancel-in-progress: false
+    permissions:
+      contents: read
     steps:
       - name: Checkout frontend (default branch)
         uses: actions/checkout@v4
@@ -33,8 +42,13 @@ jobs:
       - name: Checkout suite E2E (repo QA)
         uses: actions/checkout@v4
         with:
+          # Repo publico: no requiere token. Fijado a un commit en vez de `main`
+          # por cadena de suministro: esta suite se ejecuta en un workflow
+          # disparado por `workflow_run`, asi que un push alla no debe cambiar
+          # lo que corre aca sin revision. Actualizar el SHA a proposito al
+          # querer una version nueva de la suite.
           repository: keber/QA-UnicorntStore-refactor
-          ref: main
+          ref: 06d9369e76a8482f0f722eb24b39edb5f095efe0 # main @ 2026-08-29
           path: qa-suite
 
       - name: Setup Node
@@ -84,10 +98,33 @@ jobs:
           path: qa-suite/qa/07-automation/e2e/playwright-report/
           retention-days: 14
 
+  # Publica el reporte en gh-pages/e2e/main/. Job aparte con el unico token de
+  # escritura: no corre nada del repo ni de la suite QA.
+  publish:
+    needs: e2e-live
+    if: ${{ always() && needs.e2e-live.result != 'cancelled' && needs.e2e-live.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: "gh-pages-publish"
+      cancel-in-progress: false
+    steps:
+      # La accion de deploy opera sobre un repo git en el workspace: necesita
+      # un checkout previo aunque el contenido a publicar venga del artifact.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Descargar reporte
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report-live
+          path: playwright-report
+
       - name: Publicar reporte a gh-pages (e2e/main)
         uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4.9.0
         with:
-          folder: qa-suite/qa/07-automation/e2e/playwright-report
+          folder: playwright-report
           branch: gh-pages
           target-folder: e2e/main
           single-commit: true
