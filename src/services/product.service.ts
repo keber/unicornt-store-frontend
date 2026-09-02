@@ -1,23 +1,27 @@
 import { fetchProductsPayload } from "@/api/product.api";
 import { ApiError } from "@/api/errors";
-import { isProductDtoArray } from "@/models/product.dto";
-import { toProductModel, type ProductModel } from "@/models/product.model";
+import { isProductPageDto, toProductModel } from "@/models/product.dto";
+import type { ProductModel } from "@/models/product.model";
+
+export interface ProductQuery {
+  readonly category?: string;
+  readonly q?: string;
+}
 
 /**
- * Capa de servicio: orquesta API + validacion (isProductDtoArray) +
- * mapeo DTO -> Model. Es el unico punto que las vistas/componentes
- * (Etapa 4) deberian importar para obtener productos; nunca deberian
- * llamar fetch() ni el DTO directamente.
+ * Service layer: orchestrates the API call, runtime validation of the paginated
+ * envelope and the DTO -> model mapping. Views and components import this, never
+ * `fetch` or the DTO directly.
  */
-export async function fetchProducts(): Promise<ProductModel[]> {
-  const payload = await fetchProductsPayload();
+export async function fetchProducts(query: ProductQuery = {}): Promise<ProductModel[]> {
+  const payload = await fetchProductsPayload(query);
 
-  if (!isProductDtoArray(payload)) {
+  if (!isProductPageDto(payload)) {
     throw new ApiError(
       "invalid-payload",
-      "El catalogo recibido no tiene la forma esperada de productos.",
+      "The catalog response does not have the expected product-page shape.",
     );
   }
 
-  return payload.map(toProductModel);
+  return payload.content.map(toProductModel);
 }
