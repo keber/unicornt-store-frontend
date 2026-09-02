@@ -30,8 +30,13 @@ const FORM_FIXTURE = `
     <div id="checkout-fullName-error"></div>
     <input id="checkout-email" name="email" />
     <div id="checkout-email-error"></div>
-    <input id="checkout-address" name="address" />
-    <div id="checkout-address-error"></div>
+    <input id="checkout-street" name="street" />
+    <div id="checkout-street-error"></div>
+    <input id="checkout-city" name="city" />
+    <div id="checkout-city-error"></div>
+    <input id="checkout-region" name="region" />
+    <div id="checkout-region-error"></div>
+    <input id="checkout-zipCode" name="zipCode" />
     <div id="checkout-submit-error" class="d-none"></div>
     <button type="submit" id="btn-checkout">Finalizar compra</button>
   </form>
@@ -40,7 +45,9 @@ const FORM_FIXTURE = `
 function fillValidForm(): void {
   requireElementOfType("#checkout-fullName", HTMLInputElement).value = "Ana Pérez";
   requireElementOfType("#checkout-email", HTMLInputElement).value = "ana@example.com";
-  requireElementOfType("#checkout-address", HTMLInputElement).value = "Av. Siempre Viva 742";
+  requireElementOfType("#checkout-street", HTMLInputElement).value = "Av. Siempre Viva 742";
+  requireElementOfType("#checkout-city", HTMLInputElement).value = "Santiago";
+  requireElementOfType("#checkout-region", HTMLInputElement).value = "RM";
 }
 
 function submitForm(): void {

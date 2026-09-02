@@ -1,33 +1,37 @@
 import { describe, expect, it, vi } from "vitest";
+import { ApiError } from "@/api/errors";
 import type { CartModel } from "@/models/cart.model";
-import type { ProductModel } from "@/models/product.model";
 import type { RawCheckoutInput } from "@/models/checkout.model";
+import type { ProductModel } from "@/models/product.model";
 
-const { submitOrder } = vi.hoisted(() => ({ submitOrder: vi.fn() }));
-vi.mock("@/api/checkout.api", () => ({ submitOrder }));
+const { placeOrderRequest } = vi.hoisted(() => ({ placeOrderRequest: vi.fn() }));
+vi.mock("@/api/order.api", () => ({ placeOrderRequest }));
 
 const { buildCheckoutModel, submitCheckout } = await import("@/services/checkout.service");
 
 const buyer: RawCheckoutInput = {
   fullName: "Ana Pérez",
   email: "ana@example.com",
-  address: "Av. Siempre Viva 742",
+  street: "Av. Siempre Viva 742",
+  city: "Santiago",
+  region: "RM",
+  zipCode: "7500000",
 };
 
 const products: ProductModel[] = [
   {
     id: 1,
     name: "Polera A",
-    category: "Polera",
-    subcategory: "devops",
+    category: "Unicorns",
+    subcategory: "T-shirt",
     price: 10000,
     description: "d",
-    image: "assets/img/devops/a",
+    image: "a",
   },
 ];
 
 describe("buildCheckoutModel", () => {
-  it("arma el pedido con el total calculado y estado 'submitting'", () => {
+  it("builds the order with the computed total and 'submitting' status", () => {
     const cart: CartModel = { items: [{ id: 1, qty: 2 }] };
 
     expect(buildCheckoutModel(buyer, cart, products)).toEqual({
@@ -40,19 +44,47 @@ describe("buildCheckoutModel", () => {
 });
 
 describe("submitCheckout", () => {
-  it("delega en submitOrder() de la capa API", async () => {
-    submitOrder.mockResolvedValueOnce(undefined);
-    const order = buildCheckoutModel(buyer, { items: [{ id: 1, qty: 1 }] }, products);
+  it("posts only the shipping address and maps a valid confirmation", async () => {
+    placeOrderRequest.mockResolvedValueOnce({ id: 58, status: "CONFIRMED", total: 20000 });
+    const order = buildCheckoutModel(buyer, { items: [{ id: 1, qty: 2 }] }, products);
+
+    const confirmation = await submitCheckout(order);
+
+    expect(placeOrderRequest).toHaveBeenCalledWith({
+      street: "Av. Siempre Viva 742",
+      city: "Santiago",
+      region: "RM",
+      zipCode: "7500000",
+    });
+    expect(confirmation).toEqual({ id: 58, status: "CONFIRMED", total: 20000 });
+  });
+
+  it("omits an empty zip code from the payload", async () => {
+    placeOrderRequest.mockResolvedValueOnce({ id: 1, status: "CONFIRMED", total: 0 });
+    const order = buildCheckoutModel({ ...buyer, zipCode: "  " }, { items: [{ id: 1, qty: 1 }] }, products);
 
     await submitCheckout(order);
 
-    expect(submitOrder).toHaveBeenCalledWith(order);
+    expect(placeOrderRequest).toHaveBeenCalledWith({
+      street: "Av. Siempre Viva 742",
+      city: "Santiago",
+      region: "RM",
+    });
   });
 
-  it("propaga el error si submitOrder() rechaza", async () => {
-    submitOrder.mockRejectedValueOnce(new Error("fallo simulado"));
+  it("raises ApiError('invalid-payload') on an unexpected response shape", async () => {
+    placeOrderRequest.mockResolvedValueOnce({ nope: true });
     const order = buildCheckoutModel(buyer, { items: [{ id: 1, qty: 1 }] }, products);
 
-    await expect(submitCheckout(order)).rejects.toThrow("fallo simulado");
+    const error = await submitCheckout(order).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).reason).toBe("invalid-payload");
+  });
+
+  it("propagates a transport ApiError (e.g. out of stock -> HTTP 422)", async () => {
+    placeOrderRequest.mockRejectedValueOnce(new ApiError("http", "backend error (HTTP 422)."));
+    const order = buildCheckoutModel(buyer, { items: [{ id: 1, qty: 1 }] }, products);
+
+    await expect(submitCheckout(order)).rejects.toBeInstanceOf(ApiError);
   });
 });
