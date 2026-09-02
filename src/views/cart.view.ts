@@ -19,7 +19,7 @@ import {
   toCartLines,
 } from "@/services/cart.service";
 import { readCart, writeCart } from "@/storage/cart.storage";
-import { completeSimulatedCheckout, initCheckoutForm } from "@/views/checkout.view";
+import { completeCheckout, initCheckoutForm } from "@/views/checkout.view";
 
 /**
  * Wiring del offcanvas del carrito (Etapa 4, pasos 3 y 4 del
@@ -125,9 +125,9 @@ export function initCartView(products: readonly ProductModel[]): void {
   initCheckoutForm(requireElementOfType(CHECKOUT_FORM_SELECTOR, HTMLFormElement), {
     getCart: readCart,
     getProducts: () => products,
-    onSuccess: () => {
+    onSuccess: (confirmation) => {
       persistAndRerender(clearCart(), products);
-      completeSimulatedCheckout(offcanvasEl);
+      completeCheckout(offcanvasEl, confirmation);
     },
   });
 }

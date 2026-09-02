@@ -1,22 +1,26 @@
 import { Offcanvas } from "bootstrap";
+import { extractCheckoutForm } from "@/adapters/checkoutForm";
+import { ApiError } from "@/api/errors";
 import { showToast } from "@/components/Toast/Toast";
 import { requireElement, requireElementOfType } from "@/lib/dom";
 import type { CartModel } from "@/models/cart.model";
 import {
-  extractRawCheckoutInput,
   hasCheckoutErrors,
   validateCheckoutInput,
   type CheckoutFieldErrors,
   type CheckoutStatus,
 } from "@/models/checkout.model";
+import type { OrderConfirmation } from "@/models/order.dto";
 import type { ProductModel } from "@/models/product.model";
 import { buildCheckoutModel, submitCheckout } from "@/services/checkout.service";
 
-/** `name="..."` del input en el HTML debe calzar con estas claves (ver extractRawCheckoutInput). */
+/** `name="..."` on the input must match these keys (see extractCheckoutForm). */
 const FIELD_INPUT_IDS = {
   fullName: "checkout-fullName",
   email: "checkout-email",
-  address: "checkout-address",
+  street: "checkout-street",
+  city: "checkout-city",
+  region: "checkout-region",
 } as const;
 
 const SUBMIT_BUTTON_SELECTOR = "#btn-checkout";
@@ -100,7 +104,7 @@ function renderCheckoutStatus(
 export interface CheckoutFormOptions {
   getCart: () => CartModel;
   getProducts: () => readonly ProductModel[];
-  onSuccess: () => void;
+  onSuccess: (confirmation: OrderConfirmation) => void;
 }
 
 /**
@@ -116,7 +120,7 @@ export function initCheckoutForm(form: HTMLFormElement, options: CheckoutFormOpt
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    const raw = extractRawCheckoutInput(new FormData(form));
+    const raw = extractCheckoutForm(form);
     const errors = validateCheckoutInput(raw);
 
     if (hasCheckoutErrors(errors)) {
@@ -139,13 +143,13 @@ export function initCheckoutForm(form: HTMLFormElement, options: CheckoutFormOpt
       renderCheckoutStatus(status, submitButton, idleButtonHtml);
 
       try {
-        await submitCheckout(order);
+        const confirmation = await submitCheckout(order);
         status = "success";
         form.reset();
-        options.onSuccess();
-      } catch {
+        options.onSuccess(confirmation);
+      } catch (cause) {
         status = "error";
-        setSubmitError(form, "No se pudo procesar tu compra. Intenta de nuevo.");
+        setSubmitError(form, checkoutErrorMessage(cause));
       } finally {
         // Unico lugar que vuelve a pintar el boton, ya sea que el envio
         // haya terminado en "success" o en "error".
@@ -155,7 +159,18 @@ export function initCheckoutForm(form: HTMLFormElement, options: CheckoutFormOpt
   });
 }
 
-export function completeSimulatedCheckout(offcanvasEl: Element): void {
+/** Actionable copy for a failed submit. A stock rejection keeps the cart untouched. */
+function checkoutErrorMessage(cause: unknown): string {
+  if (cause instanceof ApiError && cause.reason === "http" && cause.message.includes("422")) {
+    return "Un producto de tu carrito se quedó sin stock. Ajusta las cantidades y vuelve a intentar.";
+  }
+  if (cause instanceof ApiError && cause.reason === "network") {
+    return "No pudimos contactar la tienda. Revisa tu conexión e intenta de nuevo.";
+  }
+  return "No se pudo procesar tu compra. Intenta de nuevo.";
+}
+
+export function completeCheckout(offcanvasEl: Element, confirmation: OrderConfirmation): void {
   Offcanvas.getInstance(offcanvasEl)?.hide();
-  showToast("¡Gracias por tu compra! Tu pedido está en camino. 🦄");
+  showToast(`¡Compra confirmada! Pedido #${String(confirmation.id)}. 🦄`);
 }
