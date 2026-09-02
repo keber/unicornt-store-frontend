@@ -1,10 +1,15 @@
 prepros.config
 node_modules/
 assets/img/originals/
-package.json
-package-lock.json
-scripts/
-
+.claude/skills/
+.claude/agents/
+.vscode/
+dist/
+coverage/
+html/
+*.tsbuildinfo
+.playwright-cli/
+debug.log
 # wrangler files
 .wrangler
 .dev.vars*

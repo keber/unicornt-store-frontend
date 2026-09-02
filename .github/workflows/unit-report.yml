@@ -1,0 +1,157 @@
+# Reporte de pruebas unitarias + cobertura (Vitest).
+#
+# Job `unit`    -> corre la suite con cobertura (json + json-summary + html),
+#                 publica una tabla de cobertura como comentario del PR y como
+#                 step-summary del run (hyperse-io/vitest-coverage-reporter),
+#                 genera el badge SVG de cobertura (wjervis7/vitest-badge-action)
+#                 y sube coverage/ + html/ + badges/ como artifact.
+#                 Permisos: contents:read (+ pull-requests:write para el
+#                 comentario). Aca corre TODO el codigo de terceros.
+# Job `publish` -> solo en push a main/refactor (no en PR). Sin ejecutar codigo
+#                 de terceros: descarga el artifact y lo publica en la rama
+#                 gh-pages bajo /unit/<rama>/ con la unica action con escritura
+#                 (JamesIves, fijada por SHA):
+#
+#   /unit/<rama>/                    -> landing (.github/pages/unit-index.html)
+#   /unit/<rama>/tests/              -> reporte HTML de Vitest
+#   /unit/<rama>/coverage/           -> reporte de cobertura (v8)
+#   /unit/<rama>/badges/coverage.svg -> badge que consume el README
+#
+# El deploy usa target-folder: al escribir solo dentro de /unit/<rama>/ no toca
+# la app (raiz) ni los reportes E2E (/e2e/**). static.yml preserva /unit/** via
+# clean-exclude. No es bloqueante: si las pruebas fallan el run queda rojo pero
+# el reporte se publica igual, mostrando el fallo.
+name: Unit tests report
+
+on:
+  push:
+    branches: ["main", "refactor"]
+  pull_request:
+    branches: ["main", "refactor"]
+  workflow_dispatch:
+
+# Sin permisos por defecto; cada job pide lo minimo.
+permissions: {}
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write # comentario de cobertura en el PR
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies (lockfile exacto)
+        run: npm ci
+
+      # Puede salir con codigo != 0 si algun test falla: los pasos siguientes
+      # corren igual (if: always()) y el job queda rojo, que es la senal
+      # correcta. Genera coverage/ (html + coverage-final.json +
+      # coverage-summary.json) y html/ (reporte de pruebas).
+      - name: Pruebas con cobertura (Vitest)
+        run: npm run test:report
+
+      - name: Tabla de cobertura (comentario PR + step-summary)
+        if: always()
+        continue-on-error: true # un fallo al comentar no tiñe el gate
+        uses: hyperse-io/vitest-coverage-reporter@e567a530decfd95d1497eb9c7a96296c76ab3d45 # v1.0.16
+        with:
+          vite-config-path: vite.config.ts
+          json-summary-path: coverage/coverage-summary.json
+          json-final-path: coverage/coverage-final.json
+
+      # El badge se genera aca (job read-only), no en el job con escritura:
+      # asi el token de `contents: write` nunca ejecuta esta composite action.
+      - name: Preparar carpeta de badges
+        if: always()
+        run: mkdir -p badges
+
+      - name: Badge de cobertura (SVG)
+        if: always()
+        uses: wjervis7/vitest-badge-action@df6e1406f1da38269a4313963b16d699362ce7dc # v1.0.0
+        with:
+          result-type: lines
+          vitest-config-path: vite.config.ts
+          summary-path: coverage/coverage-summary.json
+          badge-text: coverage
+          badge-path: badges/coverage.svg
+          upload-badge: false # no subir a Gist; lo publica el job `publish`
+
+      - name: Subir reportes como artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-report
+          path: |
+            coverage/
+            html/
+            badges/
+          retention-days: 14
+
+  publish:
+    needs: unit
+    # En PR no se publica a gh-pages: el feedback va como comentario. En push a
+    # main/refactor si. Corre aunque `unit` haya fallado, para publicar el
+    # reporte con los fallos visibles.
+    if: ${{ always() && github.event_name != 'pull_request' && needs.unit.result != 'cancelled' && needs.unit.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    # Comparte cola con static.yml / e2e.yml: todos empujan a gh-pages y un push
+    # concurrente falla por non-fast-forward. Nunca se aborta un deploy en curso.
+    concurrency:
+      group: "gh-pages-publish"
+      cancel-in-progress: false
+    steps:
+      # Necesario solo para .github/pages/unit-index.html (no se ejecuta nada
+      # del repo aqui, solo se lee esa plantilla).
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Descargar reportes
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-report
+
+      - name: Armar sitio del reporte
+        env:
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          mkdir -p site/coverage site/tests site/badges
+          cp -r coverage/. site/coverage/
+          cp -r html/. site/tests/
+          cp badges/coverage.svg site/badges/coverage.svg
+          SHORT_SHA="${SHA:0:7}"
+          RUN_DATE="$(date -u '+%Y-%m-%d %H:%M UTC')"
+          sed -e "s|__BRANCH__|${BRANCH}|g" \
+              -e "s|__SHA__|${SHORT_SHA}|g" \
+              -e "s|__DATE__|${RUN_DATE}|g" \
+              .github/pages/unit-index.html > site/index.html
+
+      - name: Calcular slug de rama
+        id: slug
+        env:
+          RAW_REF: ${{ github.ref_name }}
+        run: echo "value=${RAW_REF//\//-}" >> "$GITHUB_OUTPUT"
+
+      - name: Publicar reporte a gh-pages
+        uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4.9.0
+        with:
+          folder: site
+          branch: gh-pages
+          target-folder: unit/${{ steps.slug.outputs.value }}
+          single-commit: true
+          clean: true
+          git-config-name: github-actions[bot]
+          git-config-email: 41898282+github-actions[bot]@users.noreply.github.com

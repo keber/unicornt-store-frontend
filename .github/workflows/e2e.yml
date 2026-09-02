@@ -1,0 +1,139 @@
+# Gate end-to-end (Etapa 9): corre la suite Playwright que vive en el repo
+# keber/QA-UnicorntStore-refactor contra el build de ESTA rama, no contra
+# produccion. Por eso no gatillamos el workflow del repo QA -- ese apunta a
+# https://unicornt-store.keber.cl y validaria el sitio ya publicado, que no
+# es lo que un PR cambia. Aca hacemos checkout de la suite, servimos el
+# dist/ recien construido en localhost y apuntamos QA_BASE_URL ahi.
+#
+# El reporte HTML se publica a la rama gh-pages en /e2e/<rama>/ y queda
+# navegable en https://unicornt-store.keber.cl/e2e/<rama>/. El run contra
+# el sitio ya publicado (post-merge en main) vive en e2e-live.yml.
+name: E2E
+
+on:
+  pull_request:
+    branches: ["main", "refactor"]
+  # push a main NO dispara este workflow: tras el merge, static.yml despliega
+  # y e2e-live.yml corre la suite contra el sitio en vivo. Aca solo la rama
+  # de integracion refactor, para refrescar su reporte sin PR abierto.
+  push:
+    branches: ["refactor"]
+  workflow_dispatch:
+
+jobs:
+  # El job corre siempre (sin filtros de paths): si algun dia vuelve a ser un
+  # required status check, uno que quede "skipped" deja el PR pendiente para
+  # siempre en vez de aprobarlo.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout frontend (la rama)
+        uses: actions/checkout@v4
+
+      - name: Checkout suite E2E (repo QA)
+        uses: actions/checkout@v4
+        with:
+          # Repo publico: no requiere token. Fijado a un commit en vez de `main`
+          # por reproducibilidad y cadena de suministro: un push a la suite no
+          # cambia lo que corre aca sin que se actualice este SHA a proposito
+          # (evita ademas que un commit alla ponga rojo el CI del frontend).
+          repository: keber/QA-UnicorntStore-refactor
+          ref: 06d9369e76a8482f0f722eb24b39edb5f095efe0 # main @ 2026-08-29
+          path: qa-suite
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies (frontend)
+        run: npm ci
+
+      - name: Build (tsc + Vite)
+        run: npm run build
+
+      - name: Servir dist/ en localhost:4173
+        run: |
+          nohup npx vite preview --port 4173 --strictPort > preview.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf -o /dev/null http://localhost:4173/; then
+              echo "preview arriba"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::vite preview no respondio en 30s"
+          cat preview.log
+          exit 1
+
+      - name: Install dependencies (suite E2E)
+        working-directory: qa-suite/qa/07-automation/e2e
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: qa-suite/qa/07-automation/e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: qa-suite/qa/07-automation/e2e
+        env:
+          # Las specs navegan solo con rutas relativas ("/",
+          # "/product.html?id=N"), asi que basta con mover el baseURL.
+          QA_BASE_URL: http://localhost:4173
+          CI: true
+        run: npx playwright test --project=chromium --reporter=list,html
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: qa-suite/qa/07-automation/e2e/playwright-report/
+          retention-days: 14
+
+  # Publica el reporte en gh-pages/e2e/<rama>/. Job aparte para que el
+  # resultado del check "e2e" siga siendo SOLO el de los tests: un fallo al
+  # publicar no debe teñir de rojo el gate.
+  publish-report:
+    needs: e2e
+    if: ${{ always() && needs.e2e.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: "gh-pages-publish"
+      cancel-in-progress: false
+    steps:
+      # La accion de deploy opera sobre un repo git en el workspace: necesita
+      # un checkout previo aunque el contenido a publicar venga del artifact.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Descargar reporte
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+
+      - name: Calcular slug de rama
+        id: slug
+        env:
+          # Via env, no interpolado en el shell: el nombre de rama es
+          # entrada no confiable (puede traer metacaracteres).
+          RAW_REF: ${{ github.head_ref || github.ref_name }}
+        run: echo "value=${RAW_REF//\//-}" >> "$GITHUB_OUTPUT"
+
+      - name: Publicar reporte a gh-pages
+        uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4.9.0
+        with:
+          folder: playwright-report
+          branch: gh-pages
+          target-folder: e2e/${{ steps.slug.outputs.value }}
+          single-commit: true
+          clean: true
+          git-config-name: github-actions[bot]
+          git-config-email: 41898282+github-actions[bot]@users.noreply.github.com

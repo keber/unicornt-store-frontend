@@ -1,0 +1,33 @@
+<div class="cart-item d-flex gap-3 align-items-start py-3 border-bottom" data-id="">
+    <img
+    src=""
+    alt=""
+    class="cart-item__img rounded-2 flex-shrink-0"
+    width="72" height="72"
+    />
+    <div class="flex-grow-1 min-w-0">
+    <p class="mb-1 fw-semibold small lh-sm cart-item__name"></p>
+    <p class="mb-2 text-muted small cart-item__price"></p>
+    <div class="d-flex align-items-center gap-2">
+        <div class="input-group input-group-sm qty-selector" style="width:96px">
+        <button 
+            class="btn btn-outline-secondary btn-cart-minus" 
+            type="button" data-id="" 
+            aria-label="Reducir">−</button>
+        <input
+        type="number"
+            class="form-control text-center cart-qty-input"
+            value=""
+            min="" max=""
+            data-id=""
+            aria-label="Cantidad"
+        />
+        <button class="btn btn-outline-secondary btn-cart-plus" type="button" data-id="" aria-label="Aumentar">+</button>
+        </div>
+        <button class="btn btn-sm btn-outline-danger btn-cart-remove ms-auto" type="button" data-id="" aria-label="Eliminar">
+        <i class="fa-solid fa-trash-can"></i>
+        </button>
+    </div>
+    </div>
+    <p class="mb-0 fw-bold text-accent small flex-shrink-0 cart-item__subtotal"></p>
+</div>
