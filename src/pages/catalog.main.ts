@@ -1,5 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { renderGlobalFallback } from "@/components/GlobalFallback/GlobalFallback";
+import { initCartSession } from "@/services/cart.session";
 import { initCatalogView } from "@/views/catalog.view";
 
 /**
@@ -9,6 +10,7 @@ import { initCatalogView } from "@/views/catalog.view";
  */
 export function bootstrapCatalogPage(): void {
   try {
+    initCartSession();
     initCatalogView();
   } catch {
     // Fallback global: initCatalogView() solo puede lanzar de forma
