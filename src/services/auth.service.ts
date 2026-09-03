@@ -62,7 +62,10 @@ export async function signIn(input: LoginInput): Promise<TokenDto> {
 export async function signUp(input: RegisterInput): Promise<AuthUser> {
   const payload = await registerRequest(input);
   if (!isAccountDto(payload)) {
-    throw new ApiError("invalid-payload", "The register response does not have the expected shape.");
+    throw new ApiError(
+      "invalid-payload",
+      "The register response does not have the expected shape.",
+    );
   }
   return toAuthUser(payload);
 }

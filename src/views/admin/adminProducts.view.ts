@@ -102,9 +102,12 @@ export async function initAdminProductsView(root: ParentNode = document): Promis
     requireElementOfType("#admin-description", HTMLInputElement, form).value = product.description;
     requireElementOfType("#admin-imageBase", HTMLInputElement, form).value = product.image;
     requireElementOfType("#admin-price", HTMLInputElement, form).value = String(product.price);
-    requireElementOfType("#admin-categoryId", HTMLInputElement, form).value = String(product.categoryId ?? "");
+    requireElementOfType("#admin-categoryId", HTMLInputElement, form).value = String(
+      product.categoryId ?? "",
+    );
     requireElementOfType("#admin-stock", HTMLInputElement, form).value = String(product.stock ?? 0);
-    requireElementOfType("#admin-active", HTMLInputElement, form).checked = product.active !== false;
+    requireElementOfType("#admin-active", HTMLInputElement, form).checked =
+      product.active !== false;
   };
 
   const renderList = (products: readonly ProductModel[]): void => {

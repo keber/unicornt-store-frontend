@@ -77,7 +77,11 @@ describe("mergeLocalCart", () => {
   });
 
   it("raises ApiError('invalid-payload') when the merge response is malformed", async () => {
-    mergeCartPayload.mockResolvedValueOnce({ items: [{ productId: 0, quantity: 1 }], itemCount: 1, total: 0 });
+    mergeCartPayload.mockResolvedValueOnce({
+      items: [{ productId: 0, quantity: 1 }],
+      itemCount: 1,
+      total: 0,
+    });
 
     const error = await mergeLocalCart([{ id: 1, qty: 1 }]).catch((e: unknown) => e);
     expect((error as ApiError).reason).toBe("invalid-payload");

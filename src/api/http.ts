@@ -14,7 +14,10 @@ const DEFAULT_BASE_URL = "http://localhost:8080";
 /** Absolute base URL of the REST API, without a trailing slash. */
 export function apiBaseUrl(): string {
   const configured = import.meta.env.VITE_API_BASE_URL;
-  let base = typeof configured === "string" && configured.trim().length > 0 ? configured.trim() : DEFAULT_BASE_URL;
+  let base =
+    typeof configured === "string" && configured.trim().length > 0
+      ? configured.trim()
+      : DEFAULT_BASE_URL;
   while (base.endsWith("/")) {
     base = base.slice(0, -1);
   }
@@ -75,7 +78,10 @@ export async function apiFetch(path: string, options: ApiFetchOptions = {}): Pro
     throw new ApiError("http", "The session is invalid or has expired (HTTP 401).");
   }
   if (!response.ok) {
-    throw new ApiError("http", `The backend responded with an error (HTTP ${String(response.status)}).`);
+    throw new ApiError(
+      "http",
+      `The backend responded with an error (HTTP ${String(response.status)}).`,
+    );
   }
   if (response.status === 204) {
     return null;

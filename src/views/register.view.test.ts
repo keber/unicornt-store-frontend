@@ -65,7 +65,12 @@ describe("initRegisterView", () => {
     const onSuccess = vi.fn();
     initRegisterView({ onSuccess });
 
-    fill({ firstName: " Ada ", lastName: " Lovelace ", email: "ada@example.com", password: "s3cret!" });
+    fill({
+      firstName: " Ada ",
+      lastName: " Lovelace ",
+      email: "ada@example.com",
+      password: "s3cret!",
+    });
     submitForm();
 
     await vi.waitFor(() => {

@@ -90,7 +90,9 @@ describe("services accept an injected fake gateway", () => {
   });
 
   it("submitCheckout runs against a fake CheckoutGateway", async () => {
-    const fake = { placeOrder: vi.fn().mockResolvedValue({ id: 9, status: "CONFIRMED", total: 100 }) };
+    const fake = {
+      placeOrder: vi.fn().mockResolvedValue({ id: 9, status: "CONFIRMED", total: 100 }),
+    };
     const order = checkoutService.buildCheckoutModel(
       { fullName: "A", email: "a@b.cl", street: "s", city: "c", region: "r", zipCode: "" },
       { items: [] },

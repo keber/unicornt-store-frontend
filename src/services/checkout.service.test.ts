@@ -61,7 +61,11 @@ describe("submitCheckout", () => {
 
   it("omits an empty zip code from the payload", async () => {
     placeOrderRequest.mockResolvedValueOnce({ id: 1, status: "CONFIRMED", total: 0 });
-    const order = buildCheckoutModel({ ...buyer, zipCode: "  " }, { items: [{ id: 1, qty: 1 }] }, products);
+    const order = buildCheckoutModel(
+      { ...buyer, zipCode: "  " },
+      { items: [{ id: 1, qty: 1 }] },
+      products,
+    );
 
     await submitCheckout(order);
 

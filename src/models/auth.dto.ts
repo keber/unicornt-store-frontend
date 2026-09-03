@@ -24,7 +24,9 @@ export function isTokenDto(value: unknown): value is TokenDto {
     return false;
   }
   const t = value as Record<string, unknown>;
-  return isNonEmptyString(t.token) && typeof t.expiresIn === "number" && Number.isFinite(t.expiresIn);
+  return (
+    isNonEmptyString(t.token) && typeof t.expiresIn === "number" && Number.isFinite(t.expiresIn)
+  );
 }
 
 export function isAccountDto(value: unknown): value is AccountDto {

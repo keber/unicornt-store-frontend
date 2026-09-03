@@ -94,7 +94,9 @@ describe("authErrorMessage", () => {
   });
 
   it("falls back to a generic message for anything else", () => {
-    expect(authErrorMessage(new Error("weird"), "x")).toBe("Something went wrong. Please try again.");
+    expect(authErrorMessage(new Error("weird"), "x")).toBe(
+      "Something went wrong. Please try again.",
+    );
     expect(authErrorMessage(new ApiError("invalid-payload", "bad"), "x")).toBe(
       "Something went wrong. Please try again.",
     );

@@ -10,9 +10,8 @@ const { loginRequest, registerRequest, meRequest } = vi.hoisted(() => ({
 vi.mock("@/api/auth.api", () => ({ loginRequest, registerRequest, meRequest }));
 
 const { apiFetch, setAuthTokenProvider } = await import("@/api/http");
-const { signIn, signUp, signOut, isAuthenticated, fetchCurrentUser, onAuthChange } = await import(
-  "@/services/auth.service"
-);
+const { signIn, signUp, signOut, isAuthenticated, fetchCurrentUser, onAuthChange } =
+  await import("@/services/auth.service");
 const { readAuthToken } = await import("@/storage/auth.storage");
 
 // The service registers this provider on import; re-assert it per test so a
@@ -59,7 +58,9 @@ describe("signIn", () => {
     loginRequest.mockResolvedValueOnce({ token: "jwt-xyz", expiresIn: 1 });
     await signIn({ email: account.email, password: "s3cret!" });
 
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve({}) });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve({}) });
     vi.stubGlobal("fetch", fetchMock);
 
     await apiFetch("/api/v1/auth/me");
@@ -71,7 +72,9 @@ describe("signIn", () => {
   it("rejects a malformed login response and stores nothing", async () => {
     loginRequest.mockResolvedValueOnce({ token: "" });
 
-    const error = await signIn({ email: account.email, password: "s3cret!" }).catch((e: unknown) => e);
+    const error = await signIn({ email: account.email, password: "s3cret!" }).catch(
+      (e: unknown) => e,
+    );
 
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).reason).toBe("invalid-payload");

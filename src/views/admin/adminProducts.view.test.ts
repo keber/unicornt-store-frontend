@@ -47,7 +47,6 @@ const MARKUP = `
   <ul id="admin-product-list"></ul>
 `;
 
-
 function setInput(id: string, value: string): void {
   requireElementOfType(id, HTMLInputElement).value = value;
 }

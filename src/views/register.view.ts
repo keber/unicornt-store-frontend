@@ -65,7 +65,9 @@ export function initRegisterView(options: RegisterViewOptions = {}): void {
         options.onSuccess?.();
       },
       (cause) => {
-        error.show(authErrorMessage(cause, "That email is already registered, or the data was rejected."));
+        error.show(
+          authErrorMessage(cause, "That email is already registered, or the data was rejected."),
+        );
       },
     );
   });

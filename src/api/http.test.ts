@@ -32,7 +32,9 @@ describe("apiFetch", () => {
   });
 
   it("serialises a body and attaches the bearer token when one is provided", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve(null) });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve(null) });
     vi.stubGlobal("fetch", fetchMock);
     setAuthTokenProvider(() => "tok123");
 
@@ -69,11 +71,14 @@ describe("apiFetch", () => {
   });
 
   it("throws ApiError('invalid-json') when the body is not JSON", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: () => Promise.reject(new SyntaxError("bad")),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.reject(new SyntaxError("bad")),
+      }),
+    );
     const error = await apiFetch("/x").catch((e: unknown) => e);
     expect((error as ApiError).reason).toBe("invalid-json");
   });

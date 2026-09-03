@@ -41,7 +41,10 @@ export async function createProductRequest(payload: ProductWritePayload): Promis
   return apiFetch("/api/v1/products", { method: "POST", body: payload });
 }
 
-export async function updateProductRequest(id: number, payload: ProductWritePayload): Promise<unknown> {
+export async function updateProductRequest(
+  id: number,
+  payload: ProductWritePayload,
+): Promise<unknown> {
   return apiFetch(`/api/v1/products/${String(id)}`, { method: "PUT", body: payload });
 }
 
