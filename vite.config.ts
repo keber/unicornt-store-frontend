@@ -18,6 +18,7 @@ export default defineConfig({
         product: resolve(import.meta.dirname, "product.html"),
         login: resolve(import.meta.dirname, "login.html"),
         register: resolve(import.meta.dirname, "register.html"),
+        admin: resolve(import.meta.dirname, "admin.html"),
       },
     },
   },
