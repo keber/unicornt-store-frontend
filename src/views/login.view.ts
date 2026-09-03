@@ -1,6 +1,6 @@
-import { ApiError } from "@/api/errors";
-import { requireElement, requireElementOfType } from "@/lib/dom";
+import { requireElementOfType } from "@/lib/dom";
 import { signIn } from "@/services/auth.service";
+import { authErrorMessage, messageSlot, runSubmit } from "@/views/authForm";
 
 /**
  * Wires the sign-in form. Expected markup inside `root`:
@@ -32,53 +32,28 @@ export function initLoginView(options: LoginViewOptions = {}): void {
   const email = requireElementOfType("#login-email", HTMLInputElement, form);
   const password = requireElementOfType("#login-password", HTMLInputElement, form);
   const submit = requireElementOfType("#login-submit", HTMLButtonElement, form);
-  const error = requireElement("#login-error", form);
-
-  const showError = (message: string): void => {
-    error.textContent = message;
-    error.removeAttribute("hidden");
-  };
-  const clearError = (): void => {
-    error.textContent = "";
-    error.setAttribute("hidden", "");
-  };
+  const error = messageSlot("#login-error", form);
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    clearError();
+    error.clear();
 
     const credentials = { email: email.value.trim(), password: password.value };
     if (credentials.email.length === 0 || credentials.password.length === 0) {
-      showError("Enter your email and password.");
+      error.show("Enter your email and password.");
       return;
     }
 
-    void (async () => {
-      submit.disabled = true;
-      submit.setAttribute("aria-busy", "true");
-      submit.textContent = BUSY_LABEL;
-      try {
+    runSubmit(
+      submit,
+      { idle: IDLE_LABEL, busy: BUSY_LABEL },
+      async () => {
         await signIn(credentials);
         options.onSuccess?.();
-      } catch (cause) {
-        showError(messageFor(cause));
-      } finally {
-        submit.disabled = false;
-        submit.removeAttribute("aria-busy");
-        submit.textContent = IDLE_LABEL;
-      }
-    })();
+      },
+      (cause) => {
+        error.show(authErrorMessage(cause, "Email or password is incorrect."));
+      },
+    );
   });
-}
-
-function messageFor(cause: unknown): string {
-  if (cause instanceof ApiError) {
-    if (cause.reason === "http") {
-      return "Email or password is incorrect.";
-    }
-    if (cause.reason === "network") {
-      return "Could not reach the store. Check your connection and try again.";
-    }
-  }
-  return "Something went wrong. Please try again.";
 }

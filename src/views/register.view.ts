@@ -1,6 +1,6 @@
-import { ApiError } from "@/api/errors";
-import { requireElement, requireElementOfType } from "@/lib/dom";
+import { requireElementOfType } from "@/lib/dom";
 import { signIn, signUp } from "@/services/auth.service";
+import { authErrorMessage, messageSlot, runSubmit } from "@/views/authForm";
 
 /**
  * Wires the sign-up form. Expected markup inside `root`:
@@ -37,20 +37,11 @@ export function initRegisterView(options: RegisterViewOptions = {}): void {
   const email = requireElementOfType("#register-email", HTMLInputElement, form);
   const password = requireElementOfType("#register-password", HTMLInputElement, form);
   const submit = requireElementOfType("#register-submit", HTMLButtonElement, form);
-  const error = requireElement("#register-error", form);
-
-  const showError = (message: string): void => {
-    error.textContent = message;
-    error.removeAttribute("hidden");
-  };
-  const clearError = (): void => {
-    error.textContent = "";
-    error.setAttribute("hidden", "");
-  };
+  const error = messageSlot("#register-error", form);
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    clearError();
+    error.clear();
 
     const input = {
       firstName: firstName.value.trim(),
@@ -61,26 +52,22 @@ export function initRegisterView(options: RegisterViewOptions = {}): void {
 
     const localError = validate(input);
     if (localError !== null) {
-      showError(localError);
+      error.show(localError);
       return;
     }
 
-    void (async () => {
-      submit.disabled = true;
-      submit.setAttribute("aria-busy", "true");
-      submit.textContent = BUSY_LABEL;
-      try {
+    runSubmit(
+      submit,
+      { idle: IDLE_LABEL, busy: BUSY_LABEL },
+      async () => {
         await signUp(input);
         await signIn({ email: input.email, password: input.password });
         options.onSuccess?.();
-      } catch (cause) {
-        showError(messageFor(cause));
-      } finally {
-        submit.disabled = false;
-        submit.removeAttribute("aria-busy");
-        submit.textContent = IDLE_LABEL;
-      }
-    })();
+      },
+      (cause) => {
+        error.show(authErrorMessage(cause, "That email is already registered, or the data was rejected."));
+      },
+    );
   });
 }
 
@@ -100,16 +87,4 @@ function validate(input: {
     return `The password must be at least ${String(MIN_PASSWORD_LENGTH)} characters long.`;
   }
   return null;
-}
-
-function messageFor(cause: unknown): string {
-  if (cause instanceof ApiError) {
-    if (cause.reason === "http") {
-      return "That email is already registered, or the data was rejected.";
-    }
-    if (cause.reason === "network") {
-      return "Could not reach the store. Check your connection and try again.";
-    }
-  }
-  return "Something went wrong. Please try again.";
 }
