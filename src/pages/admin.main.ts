@@ -5,12 +5,14 @@ import "@/services/auth.service";
 import { initAdminProductsView } from "@/views/admin/adminProducts.view";
 
 /** Entry point for admin.html. */
-export function bootstrapAdminPage(): void {
+export async function bootstrapAdminPage(): Promise<void> {
   try {
-    void initAdminProductsView();
+    await initAdminProductsView();
   } catch {
     renderGlobalFallback();
   }
 }
 
-document.addEventListener("DOMContentLoaded", bootstrapAdminPage);
+document.addEventListener("DOMContentLoaded", () => {
+  void bootstrapAdminPage();
+});

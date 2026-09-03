@@ -16,20 +16,29 @@ beforeEach(() => {
 });
 
 describe("bootstrapAdminPage", () => {
-  it("initialises the admin products view", () => {
+  it("initialises the admin products view", async () => {
     initAdminProductsView.mockResolvedValue(undefined);
 
-    bootstrapAdminPage();
+    await bootstrapAdminPage();
 
     expect(initAdminProductsView).toHaveBeenCalledTimes(1);
+    expect(renderGlobalFallback).not.toHaveBeenCalled();
   });
 
-  it("falls back to the global error screen if wiring throws synchronously", () => {
+  it("falls back to the global error screen if wiring throws synchronously", async () => {
     initAdminProductsView.mockImplementation(() => {
       throw new Error("bad markup");
     });
 
-    bootstrapAdminPage();
+    await bootstrapAdminPage();
+
+    expect(renderGlobalFallback).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to the global error screen if init rejects", async () => {
+    initAdminProductsView.mockRejectedValue(new Error("network down"));
+
+    await bootstrapAdminPage();
 
     expect(renderGlobalFallback).toHaveBeenCalledTimes(1);
   });

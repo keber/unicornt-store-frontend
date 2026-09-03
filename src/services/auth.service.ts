@@ -32,7 +32,9 @@ export function onAuthChange(listener: AuthChangeListener): () => void {
 }
 
 function emit(change: AuthChange): void {
-  for (const listener of [...listeners]) {
+  // Snapshot: a listener may subscribe or unsubscribe while we iterate.
+  const current = [...listeners];
+  for (const listener of current) {
     listener(change);
   }
 }

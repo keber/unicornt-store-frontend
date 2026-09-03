@@ -9,7 +9,7 @@ const { initLoginView, initRegisterView, renderGlobalFallback } = vi.hoisted(() 
 vi.mock("@/views/login.view", () => ({ initLoginView }));
 vi.mock("@/views/register.view", () => ({ initRegisterView }));
 vi.mock("@/components/GlobalFallback/GlobalFallback", () => ({ renderGlobalFallback }));
-vi.mock("@/services/auth.service", () => ({ onAuthChange: vi.fn() }));
+vi.mock("@/services/auth.service", () => ({}));
 
 const { bootstrapAuthPage } = await import("@/pages/auth.main");
 
