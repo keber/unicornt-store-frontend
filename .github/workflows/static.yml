@@ -61,8 +61,21 @@ jobs:
       - name: Pruebas (Vitest)
         run: npm test
 
+      # VITE_API_BASE_URL se hornea en el bundle en build-time (Vite reemplaza
+      # import.meta.env.VITE_API_BASE_URL de forma estatica) -- por eso va aca,
+      # no como variable de runtime del sitio estatico.
       - name: Build (tsc + Vite)
+        env:
+          VITE_API_BASE_URL: https://api-unicornt-store.keber.cl
         run: npm run build
+
+      - name: Verificar VITE_API_BASE_URL horneado en el bundle
+        run: |
+          if ! grep -rq "api-unicornt-store.keber.cl" dist/assets/*.js; then
+            echo "::error::api-unicornt-store.keber.cl no aparece en dist/assets/*.js -- VITE_API_BASE_URL no se horneo"
+            exit 1
+          fi
+          echo "OK: VITE_API_BASE_URL horneado en el bundle"
 
       # Archivos de sitio que Vite no genera. Se escriben DESPUES del build
       # porque `vite build` vacia dist/.
