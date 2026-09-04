@@ -1,0 +1,147 @@
+# Deploy a dev/qa: sitio estatico servido por EasyEngine en el VPS (mismo VPS
+# que unicornt-store-backend). prod sigue siendo GitHub Pages (static.yml) --
+# ver docs/multi-env-deploy/PLAN.md del repo backend para el diseno completo.
+#
+# Sin rsync: el build se publica como commit normal (no squash, para poder
+# rollback con `git reset --hard <sha>`) en la rama deploy/<canal> -- mismo
+# patron que static.yml usa para gh-pages, pero sin single-commit. El VPS ya
+# tiene esta rama como working copy (`git init` una vez) y CI solo dispara un
+# `git fetch && reset --hard` ahi via un comando forzado por SSH, exactamente
+# el mismo patron que deploy-unicornt-{dev,qa,prod} en el backend. El repo es
+# publico, asi que ese fetch en el VPS no necesita credenciales.
+#
+# push a dev  -> build con VITE_API_BASE_URL de dev -> push a deploy/dev -> disparar pull
+# push a qa   -> idem, apuntando a qa
+#
+# Requiere (Settings -> Environments -> dev/qa, aun sin configurar):
+#   secrets: DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER, DEPLOY_SSH_KEY
+#            (DEPLOY_USER: deploy-frontend-dev / deploy-frontend-qa en el VPS,
+#             misma restriccion por forced-command que el backend)
+#   vars:    API_HOST (host del backend, sin esquema, p.ej. api-unicornt-dev.keber.dev)
+#            HOST     (host propio del frontend -- ya existe)
+name: Deploy to VPS (dev/qa)
+
+on:
+  push:
+    branches: ["dev", "qa"]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vps-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  resolve-target:
+    name: Resolver canal
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    outputs:
+      channel: ${{ steps.pick.outputs.channel }}
+    steps:
+      - name: Rama -> canal
+        id: pick
+        run: |
+          case "${GITHUB_REF#refs/heads/}" in
+            dev) channel=dev ;;
+            qa)  channel=qa ;;
+            *)   echo "::error::rama inesperada ${GITHUB_REF}"; exit 1 ;;
+          esac
+          echo "channel=${channel}" >> "$GITHUB_OUTPUT"
+          echo "channel=${channel}"
+
+  build-and-deploy:
+    name: Build y deploy (${{ needs.resolve-target.outputs.channel }})
+    needs: resolve-target
+    runs-on: ubuntu-latest
+    environment: ${{ needs.resolve-target.outputs.channel }}
+    concurrency: deploy-vps-${{ needs.resolve-target.outputs.channel }}
+    # contents:write -- este job empuja a la rama deploy/<canal>.
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies (lockfile exacto)
+        run: npm ci
+
+      # El deploy valida en el mismo run, igual que static.yml: nunca se
+      # publica codigo sin pasar el gate completo.
+      - name: Formato (Prettier)
+        run: npm run format:check
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Pruebas (Vitest)
+        run: npm test
+
+      - name: Build (tsc + Vite)
+        env:
+          VITE_API_BASE_URL: https://${{ vars.API_HOST }}
+        run: npm run build
+
+      - name: Verificar VITE_API_BASE_URL horneado en el bundle
+        run: |
+          if ! grep -rq "${{ vars.API_HOST }}" dist/assets/*.js; then
+            echo "::error::${{ vars.API_HOST }} no aparece en dist/assets/*.js -- VITE_API_BASE_URL no se horneo"
+            exit 1
+          fi
+          echo "OK: VITE_API_BASE_URL horneado en el bundle"
+
+      # Sin single-commit: cada deploy es un commit normal encima del anterior,
+      # asi la rama conserva historial y un rollback en el VPS es
+      # `git reset --hard <sha-anterior>`.
+      - name: Publicar dist/ a la rama deploy/${{ needs.resolve-target.outputs.channel }}
+        uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4.9.0
+        with:
+          folder: dist
+          branch: deploy/${{ needs.resolve-target.outputs.channel }}
+          clean: true
+          commit-message: "deploy: ${{ github.sha }}"
+          git-config-name: github-actions[bot]
+          git-config-email: 41898282+github-actions[bot]@users.noreply.github.com
+
+      - name: Set up SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Disparar pull en el VPS
+        run: |
+          # La clave esta anclada server-side a un forced command
+          # (p.ej. sudo -n /usr/local/sbin/deploy-frontend-dev) que hace
+          # git fetch + reset --hard sobre la rama deploy/<canal> ya publicada
+          # arriba. Lo que mandamos aca es solo una miga de pan en el log.
+          ssh -i ~/.ssh/deploy_key \
+              -p "${{ secrets.DEPLOY_PORT }}" \
+              -o StrictHostKeyChecking=yes \
+              "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+              "deploy ${{ needs.resolve-target.outputs.channel }} ${{ github.sha }}"
+
+      - name: Smoke check
+        run: |
+          set -eu
+          code=none
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://${{ vars.HOST }}/" || true)
+            [ "$code" = 200 ] && break
+            echo "  intento $i: HTTP ${code}, reintentando..."
+            sleep 3
+          done
+          [ "$code" = 200 ] || { echo "::error::https://${{ vars.HOST }}/ devolvio ${code}"; exit 1; }
+          echo "smoke OK"
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

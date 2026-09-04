@@ -25,9 +25,9 @@ name: Unit tests report
 
 on:
   push:
-    branches: ["main", "refactor"]
+    branches: ["main", "qa", "dev", "refactor"]
   pull_request:
-    branches: ["main", "refactor"]
+    branches: ["main", "qa", "dev", "refactor"]
   workflow_dispatch:
 
 # Sin permisos por defecto; cada job pide lo minimo.
