@@ -1,0 +1,38 @@
+name: gate-pr-source
+
+# Enforces the promotion path: main only accepts PRs from qa, qa only accepts
+# PRs from dev. PRs into dev are unrestricted (feature branches land there, and
+# main/qa back-merge hotfixes there without tripping this gate).
+#
+# GitHub branch protection cannot restrict a PR's source branch on its own, so
+# this runs as a required status check instead. Mirrors
+# unicornt-store-backend/.github/workflows/gate-pr-source.yml.
+
+on:
+  pull_request:
+    branches: [main, qa]
+
+jobs:
+  check:
+    name: Enforce promotion path
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify head branch for this base
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: |
+          case "$BASE" in
+            main)
+              [ "$HEAD" = "qa" ] || {
+                echo "::error::main only accepts PRs from qa (got '$HEAD')"; exit 1; }
+              ;;
+            qa)
+              [ "$HEAD" = "dev" ] || {
+                echo "::error::qa only accepts PRs from dev (got '$HEAD')"; exit 1; }
+              ;;
+            *)
+              echo "gate does not apply to base '$BASE'"; exit 0
+              ;;
+          esac
+          echo "OK: $HEAD -> $BASE"

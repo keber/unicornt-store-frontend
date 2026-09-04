@@ -1,0 +1,121 @@
+# Deploy a dev/qa: sitio estatico servido por EasyEngine en el VPS (mismo VPS
+# que unicornt-store-backend). prod sigue siendo GitHub Pages (static.yml) --
+# ver docs/multi-env-deploy/PLAN.md del repo backend para el diseno completo.
+#
+# push a dev  -> build con VITE_API_BASE_URL de dev -> rsync a la raiz del sitio dev
+# push a qa   -> idem, apuntando a qa
+#
+# Requiere (Settings -> Environments -> dev/qa, aun sin configurar):
+#   secrets: DEPLOY_HOST, DEPLOY_PORT, DEPLOY_USER, DEPLOY_SSH_KEY
+#   vars:    API_HOST (host del backend, sin esquema, p.ej. api-unicornt-dev.keber.dev)
+#            HOST     (host propio del frontend -- ya existe)
+# El usuario/clave del lado servidor deberia estar tan restringido como los
+# deploy-{dev,qa,prod} del backend (forced command via rrsync, no shell libre).
+name: Deploy to VPS (dev/qa)
+
+on:
+  push:
+    branches: ["dev", "qa"]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vps-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  resolve-target:
+    name: Resolver canal
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    outputs:
+      channel: ${{ steps.pick.outputs.channel }}
+    steps:
+      - name: Rama -> canal
+        id: pick
+        run: |
+          case "${GITHUB_REF#refs/heads/}" in
+            dev) channel=dev ;;
+            qa)  channel=qa ;;
+            *)   echo "::error::rama inesperada ${GITHUB_REF}"; exit 1 ;;
+          esac
+          echo "channel=${channel}" >> "$GITHUB_OUTPUT"
+          echo "channel=${channel}"
+
+  build-and-deploy:
+    name: Build y deploy (${{ needs.resolve-target.outputs.channel }})
+    needs: resolve-target
+    runs-on: ubuntu-latest
+    environment: ${{ needs.resolve-target.outputs.channel }}
+    concurrency: deploy-vps-${{ needs.resolve-target.outputs.channel }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies (lockfile exacto)
+        run: npm ci
+
+      # El deploy valida en el mismo run, igual que static.yml: nunca se
+      # publica codigo sin pasar el gate completo.
+      - name: Formato (Prettier)
+        run: npm run format:check
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Pruebas (Vitest)
+        run: npm test
+
+      - name: Build (tsc + Vite)
+        env:
+          VITE_API_BASE_URL: https://${{ vars.API_HOST }}
+        run: npm run build
+
+      - name: Verificar VITE_API_BASE_URL horneado en el bundle
+        run: |
+          if ! grep -rq "${{ vars.API_HOST }}" dist/assets/*.js; then
+            echo "::error::${{ vars.API_HOST }} no aparece en dist/assets/*.js -- VITE_API_BASE_URL no se horneo"
+            exit 1
+          fi
+          echo "OK: VITE_API_BASE_URL horneado en el bundle"
+
+      - name: Set up SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Publicar dist/ via rsync
+        run: |
+          # El destino real (raiz del htdocs del sitio) lo decide el forced
+          # command del lado servidor (rrsync), no este workflow -- misma
+          # separacion de privilegios que el backend. El path que se manda
+          # aca es ignorado por un rrsync bien configurado.
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=yes" \
+            dist/ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/"
+
+      - name: Smoke check
+        run: |
+          set -eu
+          code=none
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://${{ vars.HOST }}/" || true)
+            [ "$code" = 200 ] && break
+            echo "  intento $i: HTTP ${code}, reintentando..."
+            sleep 3
+          done
+          [ "$code" = 200 ] || { echo "::error::https://${{ vars.HOST }}/ devolvio ${code}"; exit 1; }
+          echo "smoke OK"
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

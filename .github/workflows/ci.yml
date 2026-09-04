@@ -6,9 +6,9 @@ name: CI
 
 on:
   push:
-    branches: ["main", "refactor", "etapas/**"]
+    branches: ["main", "qa", "dev", "refactor", "etapas/**"]
   pull_request:
-    branches: ["main", "refactor"]
+    branches: ["main", "qa", "dev", "refactor"]
   workflow_dispatch:
 
 jobs:

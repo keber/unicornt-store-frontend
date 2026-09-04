@@ -12,12 +12,13 @@ name: E2E
 
 on:
   pull_request:
-    branches: ["main", "refactor"]
+    branches: ["main", "qa", "dev", "refactor"]
   # push a main NO dispara este workflow: tras el merge, static.yml despliega
-  # y e2e-live.yml corre la suite contra el sitio en vivo. Aca solo la rama
-  # de integracion refactor, para refrescar su reporte sin PR abierto.
+  # y e2e-live.yml corre la suite contra el sitio en vivo. Aca las ramas de
+  # integracion sin PR abierto necesariamente (dev, y la vieja refactor), para
+  # refrescar su reporte.
   push:
-    branches: ["refactor"]
+    branches: ["dev", "refactor"]
   workflow_dispatch:
 
 jobs:
