@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Unicorn't Store: poleras y tazones geek con los mejores memes del universo digital. Envíos a todo Chile." />
+    <title>Unicorn't Store</title>
+    <!-- Bootstrap CSS: bundleado por Vite desde node_modules (import en src/pages/catalog.main.ts), ya no CDN. -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script type="module" crossorigin src="/assets/main-Jdw3gYZh.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/auth.service-CgvcWWGK.js">
+    <link rel="modulepreload" crossorigin href="/assets/cart.view-WEO3wPre.js">
+    <link rel="modulepreload" crossorigin href="/assets/product.service-Caol1wfS.js">
+    <link rel="stylesheet" crossorigin href="/assets/auth-CqLr8KVv.css">
+    <link rel="stylesheet" crossorigin href="/assets/cart-Bv4gOTRw.css">
+  </head>
+  <body>
+    <!-- Skip link: accesibilidad teclado -->
+    <a href="#products" class="skip-link visually-hidden-focusable">Saltar al contenido principal</a>
+
+    <!-- ===== NAVBAR ===== -->
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-brand sticky-top">
+        <div class="container">
+          <!-- Logo -->
+          <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+            <i class="fa-solid fa-unicorn fs-4"></i>
+            <span class="fw-bold">Unicorn't Store</span>
+          </a>
+
+          <!-- Hamburger -->
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#mainNav"
+            aria-controls="mainNav"
+            aria-expanded="false"
+            aria-label="Abrir menú"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <!-- Nav links -->
+          <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="index.html">
+                  <i class="fa-solid fa-house me-1"></i>Inicio
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#contacto">
+                  <i class="fa-solid fa-envelope me-1"></i>Contacto
+                </a>
+              </li>
+            </ul>
+
+            <!-- Cart button -->
+            <button
+              class="btn btn-outline-light position-relative"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#cartOffcanvas"
+              aria-controls="cartOffcanvas"
+            >
+              <i class="fa-solid fa-cart-shopping me-1"></i>Carrito
+              <span
+                id="cart-badge"
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-accent"
+                style="display: none;"
+              >0</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- ===== OFFCANVAS CARRITO ===== -->
+    <div
+      class="offcanvas offcanvas-end"
+      tabindex="-1"
+      id="cartOffcanvas"
+      aria-labelledby="cartOffcanvasLabel"
+    >
+      <div class="offcanvas-header bg-brand text-white">
+        <h5 class="offcanvas-title" id="cartOffcanvasLabel">
+          <i class="fa-solid fa-cart-shopping me-2"></i>Tu carrito
+        </h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="offcanvas"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+      <div class="offcanvas-body p-0 d-flex flex-column">
+        <!-- Lista de ítems (scrollable) -->
+        <div id="cart-items" class="p-3 flex-grow-1 overflow-auto">
+          <p class="text-muted text-center py-5">
+            <i class="fa-solid fa-box-open fa-2x mb-2 d-block"></i>
+            El carrito está vacío.
+          </p>
+        </div>
+
+        <!-- Footer con total y acciones -->
+        <div id="cart-footer" class="border-top p-3 bg-light" style="display:none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fw-semibold">Total:</span>
+            <span id="cart-total" class="fw-bold fs-5 text-accent">$0</span>
+          </div>
+          <div class="d-grid gap-2">
+            <!-- Formulario real de checkout (Etapa 5): preventDefault() + FormData,
+                 validado por src/views/checkout.view.ts. -->
+            <form id="checkout-form" novalidate>
+              <div class="mb-2">
+                <label for="checkout-fullName" class="form-label small mb-1">Nombre completo</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-fullName"
+                  name="fullName"
+                  autocomplete="name"
+                  aria-describedby="checkout-fullName-error"
+                />
+                <div class="invalid-feedback" id="checkout-fullName-error"></div>
+              </div>
+              <div class="mb-2">
+                <label for="checkout-email" class="form-label small mb-1">Email</label>
+                <input
+                  type="email"
+                  class="form-control form-control-sm"
+                  id="checkout-email"
+                  name="email"
+                  autocomplete="email"
+                  aria-describedby="checkout-email-error"
+                />
+                <div class="invalid-feedback" id="checkout-email-error"></div>
+              </div>
+              <div class="mb-2">
+                <label for="checkout-street" class="form-label small mb-1">Calle y número</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-street"
+                  name="street"
+                  autocomplete="street-address"
+                  aria-describedby="checkout-street-error"
+                />
+                <div class="invalid-feedback" id="checkout-street-error"></div>
+              </div>
+              <div class="mb-2">
+                <label for="checkout-city" class="form-label small mb-1">Ciudad</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-city"
+                  name="city"
+                  autocomplete="address-level2"
+                  aria-describedby="checkout-city-error"
+                />
+                <div class="invalid-feedback" id="checkout-city-error"></div>
+              </div>
+              <div class="mb-2">
+                <label for="checkout-region" class="form-label small mb-1">Región</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-region"
+                  name="region"
+                  autocomplete="address-level1"
+                  aria-describedby="checkout-region-error"
+                />
+                <div class="invalid-feedback" id="checkout-region-error"></div>
+              </div>
+              <div class="mb-3">
+                <label for="checkout-zipCode" class="form-label small mb-1">Código postal (opcional)</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-zipCode"
+                  name="zipCode"
+                  autocomplete="postal-code"
+                />
+              </div>
+              <div
+                id="checkout-submit-error"
+                class="alert alert-danger py-2 px-3 small d-none"
+                role="alert"
+              ></div>
+              <button type="submit" id="btn-checkout" class="btn btn-brand w-100">
+                <i class="fa-solid fa-bag-shopping me-2"></i>Finalizar compra
+              </button>
+            </form>
+            <button type="button" id="btn-clear-cart" class="btn btn-outline-danger btn-sm">
+              <i class="fa-solid fa-trash me-1"></i>Vaciar carrito
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MAIN ===== -->
+    <main>
+      <section id="products" class="py-5" aria-labelledby="products-heading">
+        <div class="container">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <i class="fa-solid fa-star-shooting fa-xl text-accent" aria-hidden="true"></i>
+            <h2 id="products-heading" class="mb-0 fw-bold">Nuestros productos</h2>
+          </div>
+          <!-- Grilla de productos: cargada de forma asincrona y renderizada por
+               src/views/catalog.view.ts (ver ProductCard, Etapa 4). El spinner es
+               el skeleton inicial (Etapa 6); aria-busy se retira solo al terminar. -->
+          <div
+            class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4"
+            id="product-list"
+            role="list"
+            aria-label="Catálogo de productos"
+            aria-busy="true"
+          >
+            <div class="col-12 text-center py-5 text-muted">
+              <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+            </div>
+          </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer text-white mt-5 py-5">
+      <div class="container">
+        <div class="row gy-4">
+          <!-- Columna 1: Marca -->
+          <div class="col-12 col-md-4">
+            <h5 class="fw-bold d-flex align-items-center gap-2">
+              <i class="fa-solid fa-unicorn"></i> Unicorn't Store
+            </h5>
+            <p class="text-footer-muted small mt-2">
+              La tienda geek definitiva. Poleras y tazones con los memes más épicos
+              del universo digital. 🦄
+            </p>
+          </div>
+
+          <!-- Columna 2: Links rápidos -->
+          <div class="col-6 col-md-4">
+            <h6 class="fw-semibold text-uppercase mb-3">Links rápidos</h6>
+            <ul class="list-unstyled small">
+              <li><a href="index.html" class="footer-link">Inicio</a></li>
+              <li><a href="#contacto" class="footer-link">Contacto</a></li>
+              <li><a href="#" class="footer-link">Política de privacidad</a></li>
+              <li><a href="#" class="footer-link">Términos y condiciones</a></li>
+            </ul>
+          </div>
+
+          <!-- Columna 3: Contacto -->
+          <div class="col-6 col-md-4" id="contacto">
+            <h6 class="fw-semibold text-uppercase mb-3">Contacto</h6>
+            <address class="not-italic">
+              <ul class="list-unstyled small text-footer-muted">
+                <li class="mb-1">
+                  <i class="fa-solid fa-location-dot me-2 text-accent" aria-hidden="true"></i>
+                  Av. Internet 404, Santiago
+                </li>
+                <li class="mb-1">
+                  <i class="fa-solid fa-envelope me-2 text-accent" aria-hidden="true"></i>
+                  hola@unicorntstore.cl
+                </li>
+                <li class="mb-1">
+                  <i class="fa-solid fa-phone me-2 text-accent" aria-hidden="true"></i>
+                  +56 9 1234 5678
+                </li>
+              </ul>
+            </address>
+            <div class="d-flex gap-3 mt-3">
+              <a href="#" class="footer-social" aria-label="Instagram">
+                <i class="fa-brands fa-instagram fa-lg"></i>
+              </a>
+              <a href="#" class="footer-social" aria-label="TikTok">
+                <i class="fa-brands fa-tiktok fa-lg"></i>
+              </a>
+              <a href="#" class="footer-social" aria-label="Twitter/X">
+                <i class="fa-brands fa-x-twitter fa-lg"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <hr class="footer-divider mt-4" />
+        <p class="text-center text-footer-muted small mb-0">
+          &copy; 2026 Unicorn't Store. Hecho con
+          <i class="fa-solid fa-heart text-accent"></i> y muchos memes.
+        </p>
+      </div>
+    </footer>
+
+    <!-- ===== TOAST de feedback ===== -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div
+        id="cart-toast"
+        class="toast align-items-center text-bg-success border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="fa-solid fa-circle-check me-2"></i>
+            <span id="toast-message">Producto agregado al carrito.</span>
+          </div>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            aria-label="Cerrar"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <!-- Etapa 4: reemplaza products.js + cart.js + app.js + el bootstrap.bundle.min.js
+         de CDN. Bootstrap JS (Offcanvas/Toast) se importa donde se usa. -->
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administración de productos · Unicorn't Store</title>
+    <script type="module" crossorigin src="/assets/admin-BnV4Qo90.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/auth.service-CgvcWWGK.js">
+    <link rel="modulepreload" crossorigin href="/assets/product.service-Caol1wfS.js">
+    <link rel="stylesheet" crossorigin href="/assets/auth-CqLr8KVv.css">
+  </head>
+  <body>
+    <main class="container" style="max-width: 720px; margin-top: 3rem">
+      <h1 class="h4 mb-4">Administración de productos</h1>
+      <p><a href="/">← Volver al catálogo</a> · <a href="/login.html">Iniciar sesión</a></p>
+
+      <p id="admin-gate" class="alert alert-warning" role="alert" hidden></p>
+
+      <form id="admin-product-form" class="border rounded p-3 mb-4" novalidate>
+        <input type="hidden" id="admin-product-id" />
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label" for="admin-name">Nombre</label>
+            <input class="form-control" id="admin-name" name="name" />
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="admin-description">Descripción</label>
+            <input class="form-control" id="admin-description" name="description" />
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="admin-imageBase">Imagen (nombre base, sin extensión)</label>
+            <input class="form-control" id="admin-imageBase" name="imageBase" placeholder="classic-unicorn-tshirt" />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="admin-price">Precio (CLP)</label>
+            <input class="form-control" id="admin-price" name="price" type="number" min="1" />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="admin-categoryId">Categoría (id)</label>
+            <input class="form-control" id="admin-categoryId" name="categoryId" type="number" min="1" />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="admin-productTypeId">Tipo (id)</label>
+            <input class="form-control" id="admin-productTypeId" name="productTypeId" type="number" min="1" />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label" for="admin-stock">Stock</label>
+            <input class="form-control" id="admin-stock" name="stock" type="number" min="0" />
+          </div>
+          <div class="col-12 form-check ms-2 mt-2">
+            <input class="form-check-input" id="admin-active" name="active" type="checkbox" checked />
+            <label class="form-check-label" for="admin-active">Visible en la tienda</label>
+          </div>
+        </div>
+        <p id="admin-form-error" class="text-danger mt-2" role="alert" hidden></p>
+        <div class="mt-3">
+          <button class="btn btn-primary" id="admin-submit" type="submit">Guardar</button>
+          <button class="btn btn-outline-secondary" id="admin-reset" type="button">Nuevo</button>
+        </div>
+      </form>
+
+      <ul id="admin-product-list" class="list-group"></ul>
+    </main>
+  </body>
+</html>
