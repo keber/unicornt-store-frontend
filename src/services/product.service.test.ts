@@ -9,43 +9,70 @@ vi.mock("@/api/product.api", () => ({ fetchProductsPayload }));
 
 const { fetchProducts } = await import("@/services/product.service");
 
-const validDto = {
+const dto = {
   id: 1,
-  name: "Polera 'I Can Explain It To You'",
-  category: "Polera",
-  subcategory: "pm",
-  price: 13990,
-  description: "Descripcion valida.",
-  image: "assets/img/pm/i-can-explain-it-to-you",
+  name: "Classic Unicorn T-shirt",
+  description: "Cotton T-shirt.",
+  imageBase: "classic-unicorn-tshirt",
+  price: 14990,
+  categoryId: 1,
+  categoryName: "Unicorns",
+  productTypeId: 1,
+  productTypeName: "T-shirt",
+  stock: 25,
+  active: true,
 };
 
+const page = { content: [dto], page: 0, size: 20, totalElements: 1, totalPages: 1 };
+
 describe("fetchProducts", () => {
-  it("valida y mapea un payload correcto a ProductModel[]", async () => {
-    fetchProductsPayload.mockResolvedValueOnce([validDto]);
+  it("validates the page envelope and maps content to ProductModel[]", async () => {
+    fetchProductsPayload.mockResolvedValueOnce(page);
 
     const products = await fetchProducts();
 
-    expect(products).toEqual([validDto]);
+    expect(products).toEqual([
+      {
+        id: 1,
+        name: "Classic Unicorn T-shirt",
+        category: "Unicorns",
+        categoryId: 1,
+        subcategory: "T-shirt",
+        price: 14990,
+        description: "Cotton T-shirt.",
+        image: "classic-unicorn-tshirt",
+        stock: 25,
+        active: true,
+      },
+    ]);
   });
 
-  it("lanza ApiError('invalid-payload') si el payload no es un array de productos", async () => {
-    fetchProductsPayload.mockResolvedValueOnce({ not: "an array" });
+  it("forwards the category and text filters to the transport layer", async () => {
+    fetchProductsPayload.mockResolvedValueOnce({ ...page, content: [] });
+
+    await fetchProducts({ category: "unicorns", q: "shirt" });
+
+    expect(fetchProductsPayload).toHaveBeenCalledWith({ category: "unicorns", q: "shirt" });
+  });
+
+  it("raises ApiError('invalid-payload') when the response is not a page envelope", async () => {
+    fetchProductsPayload.mockResolvedValueOnce([dto]);
 
     const error = await fetchProducts().catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).reason).toBe("invalid-payload");
   });
 
-  it("lanza ApiError('invalid-payload') si un solo elemento del array es invalido", async () => {
-    fetchProductsPayload.mockResolvedValueOnce([validDto, { ...validDto, id: -1 }]);
+  it("raises ApiError('invalid-payload') when a single product in content is invalid", async () => {
+    fetchProductsPayload.mockResolvedValueOnce({ ...page, content: [dto, { ...dto, id: -1 }] });
 
     const error = await fetchProducts().catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).reason).toBe("invalid-payload");
   });
 
-  it("propaga los ApiError que ya vienen de la capa API (network/http/json)", async () => {
-    fetchProductsPayload.mockRejectedValueOnce(new ApiError("network", "sin conexion"));
+  it("propagates ApiError from the transport layer (network/http/json)", async () => {
+    fetchProductsPayload.mockRejectedValueOnce(new ApiError("network", "offline"));
 
     const error = await fetchProducts().catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);

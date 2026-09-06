@@ -36,8 +36,8 @@ const CART_FIXTURE = `
         <div class="invalid-feedback" id="checkout-fullName-error"></div>
         <input id="checkout-email" name="email" />
         <div class="invalid-feedback" id="checkout-email-error"></div>
-        <input id="checkout-address" name="address" />
-        <div class="invalid-feedback" id="checkout-address-error"></div>
+        <input id="checkout-street" name="street" /><div id="checkout-street-error"></div><input id="checkout-city" name="city" /><div id="checkout-city-error"></div><input id="checkout-region" name="region" /><div id="checkout-region-error"></div><input id="checkout-zipCode" name="zipCode" />
+        <div class="invalid-feedback" id="checkout-street-error"></div>
         <div id="checkout-submit-error" class="d-none"></div>
         <button type="submit" id="btn-checkout">Finalizar compra</button>
       </form>

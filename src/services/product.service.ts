@@ -1,23 +1,64 @@
-import { fetchProductsPayload } from "@/api/product.api";
 import { ApiError } from "@/api/errors";
-import { isProductDtoArray } from "@/models/product.dto";
-import { toProductModel, type ProductModel } from "@/models/product.model";
+import type { ProductWritePayload } from "@/api/product.api";
+import { httpProductGateway, type ProductGateway } from "@/gateways/product.gateway";
+import { isProductDto, isProductPageDto, toProductModel } from "@/models/product.dto";
+import type { ProductModel } from "@/models/product.model";
+
+export interface ProductQuery {
+  readonly category?: string;
+  readonly q?: string;
+}
 
 /**
- * Capa de servicio: orquesta API + validacion (isProductDtoArray) +
- * mapeo DTO -> Model. Es el unico punto que las vistas/componentes
- * (Etapa 4) deberian importar para obtener productos; nunca deberian
- * llamar fetch() ni el DTO directamente.
+ * Service layer: orchestrates the gateway call, runtime validation and the
+ * DTO -> model mapping. It depends on the {@link ProductGateway} port, never on the
+ * concrete `api/` module; `httpProductGateway` is the default, a fake drives it in
+ * tests. Views import this, never `fetch` or the DTO directly.
  */
-export async function fetchProducts(): Promise<ProductModel[]> {
-  const payload = await fetchProductsPayload();
+export async function fetchProducts(
+  query: ProductQuery = {},
+  gateway: ProductGateway = httpProductGateway,
+): Promise<ProductModel[]> {
+  const payload = await gateway.list(query);
 
-  if (!isProductDtoArray(payload)) {
+  if (!isProductPageDto(payload)) {
     throw new ApiError(
       "invalid-payload",
-      "El catalogo recibido no tiene la forma esperada de productos.",
+      "The catalog response does not have the expected product-page shape.",
     );
   }
 
-  return payload.map(toProductModel);
+  return payload.content.map(toProductModel);
+}
+
+function parseProduct(payload: unknown): ProductModel {
+  if (!isProductDto(payload)) {
+    throw new ApiError("invalid-payload", "The product response does not have the expected shape.");
+  }
+  return toProductModel(payload);
+}
+
+/** Admin: create a product. The bearer token is attached by the shared client. */
+export async function createProduct(
+  payload: ProductWritePayload,
+  gateway: ProductGateway = httpProductGateway,
+): Promise<ProductModel> {
+  return parseProduct(await gateway.create(payload));
+}
+
+/** Admin: replace a product. */
+export async function updateProduct(
+  id: number,
+  payload: ProductWritePayload,
+  gateway: ProductGateway = httpProductGateway,
+): Promise<ProductModel> {
+  return parseProduct(await gateway.update(id, payload));
+}
+
+/** Admin: delete a product. Resolves on a 204. */
+export async function deleteProduct(
+  id: number,
+  gateway: ProductGateway = httpProductGateway,
+): Promise<void> {
+  await gateway.remove(id);
 }

@@ -1,5 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { renderGlobalFallback } from "@/components/GlobalFallback/GlobalFallback";
+import { initCartSession } from "@/services/cart.session";
 import { initProductView } from "@/views/product.view";
 
 /**
@@ -9,6 +10,7 @@ import { initProductView } from "@/views/product.view";
  */
 export function bootstrapProductPage(): void {
   try {
+    initCartSession();
     initProductView();
   } catch {
     // Fallback global: initProductView() solo puede lanzar de forma

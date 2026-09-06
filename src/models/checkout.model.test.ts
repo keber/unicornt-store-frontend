@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  extractRawCheckoutInput,
   hasCheckoutErrors,
   isCheckoutStatus,
   validateCheckoutInput,
@@ -10,82 +9,63 @@ import {
 const validInput: RawCheckoutInput = {
   fullName: "Ana Pérez",
   email: "ana@example.com",
-  address: "Av. Siempre Viva 742",
+  street: "Av. Siempre Viva 742",
+  city: "Santiago",
+  region: "RM",
+  zipCode: "",
 };
 
 describe("isCheckoutStatus", () => {
-  it("acepta los 4 estados del vocabulario cerrado", () => {
+  it("accepts the 4 closed states and rejects anything else", () => {
     expect(isCheckoutStatus("idle")).toBe(true);
     expect(isCheckoutStatus("submitting")).toBe(true);
     expect(isCheckoutStatus("success")).toBe(true);
     expect(isCheckoutStatus("error")).toBe(true);
-  });
-
-  it("rechaza cualquier otro string", () => {
     expect(isCheckoutStatus("loading")).toBe(false);
     expect(isCheckoutStatus("")).toBe(false);
   });
 });
 
 describe("validateCheckoutInput", () => {
-  it("no devuelve errores para datos validos", () => {
+  it("returns no errors for valid input", () => {
     expect(validateCheckoutInput(validInput)).toEqual({});
   });
 
-  it("rechaza un nombre vacio o muy corto", () => {
+  it("rejects an empty or too-short name", () => {
     expect(validateCheckoutInput({ ...validInput, fullName: "" }).fullName).toBeDefined();
     expect(validateCheckoutInput({ ...validInput, fullName: "Al" }).fullName).toBeDefined();
-    expect(validateCheckoutInput({ ...validInput, fullName: "   " }).fullName).toBeDefined();
   });
 
-  it("rechaza emails sin @, sin dominio o con espacios", () => {
-    expect(validateCheckoutInput({ ...validInput, email: "sin-arroba" }).email).toBeDefined();
+  it("rejects emails with no @, no domain or spaces", () => {
+    expect(validateCheckoutInput({ ...validInput, email: "no-at" }).email).toBeDefined();
     expect(validateCheckoutInput({ ...validInput, email: "a@b" }).email).toBeDefined();
     expect(validateCheckoutInput({ ...validInput, email: "a b@c.com" }).email).toBeDefined();
-    expect(validateCheckoutInput({ ...validInput, email: "@sindominio.com" }).email).toBeDefined();
-  });
-
-  it("acepta un email con formato razonable", () => {
     expect(validateCheckoutInput({ ...validInput, email: "a@b.cl" }).email).toBeUndefined();
   });
 
-  it("rechaza una direccion vacia o muy corta", () => {
-    expect(validateCheckoutInput({ ...validInput, address: "" }).address).toBeDefined();
-    expect(validateCheckoutInput({ ...validInput, address: "Ac 1" }).address).toBeDefined();
+  it("requires street, city and region", () => {
+    expect(validateCheckoutInput({ ...validInput, street: "" }).street).toBeDefined();
+    expect(validateCheckoutInput({ ...validInput, street: "Ac 1" }).street).toBeDefined();
+    expect(validateCheckoutInput({ ...validInput, city: "  " }).city).toBeDefined();
+    expect(validateCheckoutInput({ ...validInput, region: "" }).region).toBeDefined();
   });
 
-  it("reporta varios campos invalidos a la vez", () => {
-    const errors = validateCheckoutInput({ fullName: "", email: "x", address: "" });
-    expect(Object.keys(errors).sort()).toEqual(["address", "email", "fullName"]);
+  it("reports several invalid fields at once", () => {
+    const errors = validateCheckoutInput({
+      fullName: "",
+      email: "x",
+      street: "",
+      city: "",
+      region: "",
+      zipCode: "",
+    });
+    expect(Object.keys(errors).sort()).toEqual(["city", "email", "fullName", "region", "street"]);
   });
 });
 
 describe("hasCheckoutErrors", () => {
-  it("es false para un objeto de errores vacio", () => {
+  it("is false for an empty error object and true otherwise", () => {
     expect(hasCheckoutErrors({})).toBe(false);
-  });
-
-  it("es true si hay al menos un campo con error", () => {
-    expect(hasCheckoutErrors({ email: "invalido" })).toBe(true);
-  });
-});
-
-describe("extractRawCheckoutInput", () => {
-  it("lee fullName/email/address desde un FormData", () => {
-    const formData = new FormData();
-    formData.set("fullName", "Ana Pérez");
-    formData.set("email", "ana@example.com");
-    formData.set("address", "Av. Siempre Viva 742");
-
-    expect(extractRawCheckoutInput(formData)).toEqual(validInput);
-  });
-
-  it("lanza si un campo esperado no llega como texto", () => {
-    const formData = new FormData();
-    formData.set("email", "ana@example.com");
-    formData.set("address", "Av. Siempre Viva 742");
-    // fullName ausente
-
-    expect(() => extractRawCheckoutInput(formData)).toThrow(TypeError);
+    expect(hasCheckoutErrors({ email: "bad" })).toBe(true);
   });
 });

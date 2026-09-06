@@ -1,60 +1,107 @@
-import {
-  isProductCategory,
-  isProductSubcategory,
-  type ProductCategory,
-  type ProductSubcategory,
-} from "@/models/product.model";
+import type { ProductModel } from "@/models/product.model";
 
 /**
- * Forma de un producto tal como llega desde /data/products.json (Etapa 3)
- * o, a futuro, desde el endpoint REST del backend (Hito 4). Se valida con
- * isProductDto() antes de confiar en ella; nunca se consume "unknown"
- * directamente en el resto de la app.
+ * A product exactly as the backend returns it from
+ * `GET /api/v1/products` (the `ProductResponse` record). It is validated with
+ * {@link isProductDto} before the rest of the app trusts it; `unknown` is never
+ * consumed directly.
  */
 export interface ProductDto {
   readonly id: number;
   readonly name: string;
-  readonly category: ProductCategory;
-  readonly subcategory: ProductSubcategory;
-  readonly price: number;
   readonly description: string;
-  readonly image: string;
+  readonly imageBase: string;
+  readonly price: number;
+  readonly categoryId: number;
+  readonly categoryName: string;
+  readonly productTypeId: number;
+  readonly productTypeName: string;
+  readonly stock: number;
+  readonly active: boolean;
+}
+
+/** The paginated envelope returned by `GET /api/v1/products` (`ProductPageResponse`). */
+export interface ProductPageDto {
+  readonly content: ProductDto[];
+  readonly page: number;
+  readonly size: number;
+  readonly totalElements: number;
+  readonly totalPages: number;
 }
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value > 0;
 }
 
 /**
- * Type guard estructural: no usa `as`, valida campo por campo. Un payload
- * que falle cualquier chequeo se rechaza completo (ver
- * product.service.ts) en vez de dejar pasar un producto a medio tipar.
+ * Structural type guard: no `as`, validated field by field. A payload that fails
+ * any check is rejected whole (see product.service.ts) rather than letting a
+ * half-typed product through.
  */
 export function isProductDto(value: unknown): value is ProductDto {
   if (typeof value !== "object" || value === null) {
     return false;
   }
-
-  const candidate = value as Record<string, unknown>;
-
+  const c = value as Record<string, unknown>;
   return (
-    isFiniteNumber(candidate.id) &&
-    Number.isInteger(candidate.id) &&
-    candidate.id > 0 &&
-    isNonEmptyString(candidate.name) &&
-    isProductCategory(candidate.category) &&
-    isProductSubcategory(candidate.subcategory) &&
-    isFiniteNumber(candidate.price) &&
-    candidate.price >= 0 &&
-    isNonEmptyString(candidate.description) &&
-    isNonEmptyString(candidate.image)
+    isPositiveInteger(c.id) &&
+    isNonEmptyString(c.name) &&
+    isString(c.description) &&
+    isString(c.imageBase) &&
+    typeof c.price === "number" &&
+    Number.isFinite(c.price) &&
+    c.price >= 0 &&
+    isPositiveInteger(c.categoryId) &&
+    isNonEmptyString(c.categoryName) &&
+    isPositiveInteger(c.productTypeId) &&
+    isNonEmptyString(c.productTypeName) &&
+    isNonNegativeInteger(c.stock) &&
+    typeof c.active === "boolean"
   );
 }
 
 export function isProductDtoArray(value: unknown): value is ProductDto[] {
   return Array.isArray(value) && value.every(isProductDto);
+}
+
+export function isProductPageDto(value: unknown): value is ProductPageDto {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const c = value as Record<string, unknown>;
+  return (
+    isProductDtoArray(c.content) &&
+    isNonNegativeInteger(c.page) &&
+    isNonNegativeInteger(c.size) &&
+    isNonNegativeInteger(c.totalElements) &&
+    isNonNegativeInteger(c.totalPages)
+  );
+}
+
+/** Bridges a validated {@link ProductDto} to the {@link ProductModel} the app uses. */
+export function toProductModel(dto: ProductDto): ProductModel {
+  return {
+    id: dto.id,
+    name: dto.name,
+    category: dto.categoryName,
+    categoryId: dto.categoryId,
+    subcategory: dto.productTypeName,
+    price: dto.price,
+    description: dto.description,
+    image: dto.imageBase,
+    stock: dto.stock,
+    active: dto.active,
+  };
 }

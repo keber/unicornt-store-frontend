@@ -1,37 +1,53 @@
-import { ApiError } from "@/api/errors";
+import { apiFetch } from "@/api/http";
+
+export interface ProductQueryParams {
+  readonly category?: string;
+  readonly q?: string;
+}
 
 /**
- * Hoy sirve el JSON estatico de public/data/products.json. En la
- * integracion con el Hito 4 (Spring Boot) este es el unico valor que
- * cambia, idealmente a una URL configurable via variable de entorno de
- * Vite (import.meta.env.VITE_API_BASE_URL + "/api/products").
+ * Catalog transport. The product list comes from the real backend
+ * (`GET /api/v1/products` on Spring Boot + PostgreSQL) through the shared
+ * {@link apiFetch}; the former `public/data/products.json` mock is no longer a
+ * source. Write calls carry the bearer token automatically (see `src/api/http.ts`).
+ *
+ * This layer only performs the HTTP call and returns the body as `unknown`.
  */
-const PRODUCTS_URL = "/data/products.json";
-
-/**
- * Capa API: solo hace la llamada HTTP y entrega el body como `unknown`.
- * No conoce ProductDto ni ProductModel — esa responsabilidad es de
- * product.service.ts. Separar esto evita que un cambio de backend
- * obligue a tocar la logica de validacion o el resto de la app.
- */
-export async function fetchProductsPayload(): Promise<unknown> {
-  let response: Response;
-  try {
-    response = await fetch(PRODUCTS_URL);
-  } catch (cause) {
-    throw new ApiError("network", "No se pudo conectar para cargar el catalogo.", { cause });
+export async function fetchProductsPayload(query: ProductQueryParams = {}): Promise<unknown> {
+  const params = new URLSearchParams();
+  if (query.category !== undefined && query.category.trim().length > 0) {
+    params.set("category", query.category.trim());
   }
-
-  if (!response.ok) {
-    throw new ApiError(
-      "http",
-      `El catalogo respondio con un error (HTTP ${String(response.status)}).`,
-    );
+  if (query.q !== undefined && query.q.trim().length > 0) {
+    params.set("q", query.q.trim());
   }
+  const suffix = params.toString();
+  return apiFetch(suffix.length > 0 ? `/api/v1/products?${suffix}` : "/api/v1/products");
+}
 
-  try {
-    return await response.json();
-  } catch (cause) {
-    throw new ApiError("invalid-json", "La respuesta del catalogo no es JSON valido.", { cause });
-  }
+/** Body accepted by `POST` and `PUT /api/v1/products` (the `ProductCreate/UpdateRequest`). */
+export interface ProductWritePayload {
+  readonly name: string;
+  readonly description: string;
+  readonly imageBase: string;
+  readonly price: number;
+  readonly categoryId: number;
+  readonly productTypeId: number;
+  readonly stock: number;
+  readonly active: boolean;
+}
+
+export async function createProductRequest(payload: ProductWritePayload): Promise<unknown> {
+  return apiFetch("/api/v1/products", { method: "POST", body: payload });
+}
+
+export async function updateProductRequest(
+  id: number,
+  payload: ProductWritePayload,
+): Promise<unknown> {
+  return apiFetch(`/api/v1/products/${String(id)}`, { method: "PUT", body: payload });
+}
+
+export async function deleteProductRequest(id: number): Promise<unknown> {
+  return apiFetch(`/api/v1/products/${String(id)}`, { method: "DELETE" });
 }

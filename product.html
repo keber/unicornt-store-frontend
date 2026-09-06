@@ -131,17 +131,51 @@
                 />
                 <div class="invalid-feedback" id="checkout-email-error"></div>
               </div>
-              <div class="mb-3">
-                <label for="checkout-address" class="form-label small mb-1">Dirección de envío</label>
+              <div class="mb-2">
+                <label for="checkout-street" class="form-label small mb-1">Calle y número</label>
                 <input
                   type="text"
                   class="form-control form-control-sm"
-                  id="checkout-address"
-                  name="address"
+                  id="checkout-street"
+                  name="street"
                   autocomplete="street-address"
-                  aria-describedby="checkout-address-error"
+                  aria-describedby="checkout-street-error"
                 />
-                <div class="invalid-feedback" id="checkout-address-error"></div>
+                <div class="invalid-feedback" id="checkout-street-error"></div>
+              </div>
+              <div class="mb-2">
+                <label for="checkout-city" class="form-label small mb-1">Ciudad</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-city"
+                  name="city"
+                  autocomplete="address-level2"
+                  aria-describedby="checkout-city-error"
+                />
+                <div class="invalid-feedback" id="checkout-city-error"></div>
+              </div>
+              <div class="mb-2">
+                <label for="checkout-region" class="form-label small mb-1">Región</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-region"
+                  name="region"
+                  autocomplete="address-level1"
+                  aria-describedby="checkout-region-error"
+                />
+                <div class="invalid-feedback" id="checkout-region-error"></div>
+              </div>
+              <div class="mb-3">
+                <label for="checkout-zipCode" class="form-label small mb-1">Código postal (opcional)</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="checkout-zipCode"
+                  name="zipCode"
+                  autocomplete="postal-code"
+                />
               </div>
               <div
                 id="checkout-submit-error"

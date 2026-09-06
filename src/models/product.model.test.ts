@@ -1,64 +1,53 @@
 import { describe, expect, it } from "vitest";
-import type { ProductDto } from "@/models/product.dto";
-import {
-  isProductCategory,
-  isProductSubcategory,
-  productImageSrc,
-  toProductModel,
-  type ProductModel,
-} from "@/models/product.model";
+import { isPurchasable, productImageSrc, type ProductModel } from "@/models/product.model";
 
-const dto: ProductDto = {
+const model: ProductModel = {
   id: 7,
-  name: "Polera 'Breaking Prod'",
-  category: "Polera",
-  subcategory: "devops",
-  price: 13990,
-  description: "Basada en Breaking Bad.",
-  image: "assets/img/devops/breaking-prod",
+  name: "Rainbow Mug",
+  category: "Rainbows",
+  categoryId: 2,
+  subcategory: "Mug",
+  price: 7990,
+  description: "Ceramic mug.",
+  image: "rainbow-mug",
+  stock: 3,
+  active: true,
 };
 
-describe("isProductCategory / isProductSubcategory", () => {
-  it("aceptan valores del vocabulario cerrado", () => {
-    expect(isProductCategory("Polera")).toBe(true);
-    expect(isProductCategory("Tazón")).toBe(true);
-    expect(isProductSubcategory("devops")).toBe(true);
-  });
-
-  it("rechazan cualquier otro string", () => {
-    expect(isProductCategory("polera")).toBe(false); // sensible a mayusculas
-    expect(isProductSubcategory("Devops")).toBe(false);
-    expect(isProductSubcategory("")).toBe(false);
-  });
-});
-
-describe("toProductModel", () => {
-  it("mapea todos los campos del DTO al modelo", () => {
-    const model: ProductModel = toProductModel(dto);
-    expect(model).toEqual({
-      id: 7,
-      name: "Polera 'Breaking Prod'",
-      category: "Polera",
-      subcategory: "devops",
-      price: 13990,
-      description: "Basada en Breaking Bad.",
-      image: "assets/img/devops/breaking-prod",
-    });
-  });
-});
-
 describe("productImageSrc", () => {
-  const model = toProductModel(dto);
-
-  it("construye la variante de detalle (800x800) sin sufijo", () => {
-    expect(productImageSrc(model, "detail")).toBe("assets/img/devops/breaking-prod.webp");
+  it("builds the detail variant with no suffix", () => {
+    expect(productImageSrc(model, "detail")).toBe("rainbow-mug.webp");
   });
 
-  it("construye la variante de card (480x480)", () => {
-    expect(productImageSrc(model, "card")).toBe("assets/img/devops/breaking-prod-card.webp");
+  it("builds the card variant", () => {
+    expect(productImageSrc(model, "card")).toBe("rainbow-mug-card.webp");
   });
 
-  it("construye la variante de miniatura (150x150)", () => {
-    expect(productImageSrc(model, "thumb")).toBe("assets/img/devops/breaking-prod-thumb.webp");
+  it("builds the thumbnail variant", () => {
+    expect(productImageSrc(model, "thumb")).toBe("rainbow-mug-thumb.webp");
+  });
+});
+
+describe("isPurchasable", () => {
+  it("is true for an active product with stock", () => {
+    expect(isPurchasable(model)).toBe(true);
+  });
+
+  it("is false when inactive or out of stock", () => {
+    expect(isPurchasable({ ...model, active: false })).toBe(false);
+    expect(isPurchasable({ ...model, stock: 0 })).toBe(false);
+  });
+
+  it("assumes availability when the optional fields are absent (legacy fixtures)", () => {
+    const legacy: ProductModel = {
+      id: 1,
+      name: "Legacy",
+      category: "x",
+      subcategory: "y",
+      price: 1,
+      description: "d",
+      image: "i",
+    };
+    expect(isPurchasable(legacy)).toBe(true);
   });
 });
