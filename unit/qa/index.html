@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Pruebas unitarias — Unicorn't Store</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --brand: #7c3aed;
+        --fg: #1e1b4b;
+        --muted: #6b7280;
+        --bg: #ffffff;
+        --card: #f5f3ff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --fg: #ede9fe;
+          --muted: #9ca3af;
+          --bg: #14121f;
+          --card: #221c33;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 3rem 1.25rem;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      main {
+        max-width: 40rem;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.25rem;
+        font-size: 1.5rem;
+      }
+      p.lead {
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+      }
+      .badges {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0 0 2rem;
+      }
+      .badges img {
+        height: 20px;
+      }
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0.75rem;
+      }
+      a.report {
+        display: block;
+        padding: 1rem 1.25rem;
+        background: var(--card);
+        border-radius: 0.75rem;
+        text-decoration: none;
+        color: inherit;
+        font-weight: 600;
+        border: 1px solid transparent;
+      }
+      a.report:hover {
+        border-color: var(--brand);
+      }
+      a.report span {
+        display: block;
+        font-weight: 400;
+        font-size: 0.875rem;
+        color: var(--muted);
+      }
+      footer {
+        margin-top: 2.5rem;
+        font-size: 0.8125rem;
+        color: var(--muted);
+      }
+      footer a {
+        color: var(--brand);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Pruebas unitarias</h1>
+      <p class="lead">
+        Suite Vitest + jsdom de la rama <code>qa</code>, ejecutada el
+        <code>2026-09-04 21:39 UTC</code> (commit <code>7e06042</code>).
+      </p>
+      <div class="badges">
+        <img
+          src="https://github.com/keber/unicornt-store-frontend/actions/workflows/unit-report.yml/badge.svg"
+          alt="Estado del workflow de pruebas unitarias"
+        />
+        <img src="./badges/coverage.svg" alt="Cobertura de lineas" />
+      </div>
+      <ul>
+        <li>
+          <a class="report" href="./tests/">
+            Resultados de las pruebas
+            <span>Reporte HTML de Vitest: cada archivo, cada test, duracion y estado.</span>
+          </a>
+        </li>
+        <li>
+          <a class="report" href="./coverage/">
+            Cobertura de codigo
+            <span>Reporte de cobertura (v8): lineas, ramas y funciones por archivo de <code>src/</code>.</span>
+          </a>
+        </li>
+      </ul>
+      <footer>
+        Publicado por <code>.github/workflows/unit-report.yml</code> en cada push a
+        <code>main</code>/<code>refactor</code>. El badge de cobertura lo genera
+        <code>wjervis7/vitest-badge-action</code>. Volver a
+        <a href="/">unicornt-store.keber.cl</a>.
+      </footer>
+    </main>
+  </body>
+</html>

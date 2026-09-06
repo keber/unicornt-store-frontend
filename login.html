@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar sesión · Unicorn't Store</title>
+    <script type="module" crossorigin src="/assets/auth.service-DFlsMdNV.js"></script>
+    <script type="module" crossorigin src="/assets/auth.main-B7SGsNg2.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/auth-CqLr8KVv.css">
+  </head>
+  <body>
+    <main class="container" style="max-width: 420px; margin-top: 4rem">
+      <h1 class="h4 mb-4">Iniciar sesión</h1>
+      <form id="login-form" novalidate>
+        <div class="mb-3">
+          <label class="form-label" for="login-email">Email</label>
+          <input class="form-control" id="login-email" name="email" type="email" autocomplete="email" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="login-password">Contraseña</label>
+          <input
+            class="form-control"
+            id="login-password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+          />
+        </div>
+        <p id="login-error" class="text-danger" role="alert" hidden></p>
+        <button class="btn btn-primary w-100" id="login-submit" type="submit">Sign in</button>
+      </form>
+      <p class="mt-3 mb-0">
+        ¿No tienes cuenta? <a href="/register.html">Crear una</a>
+      </p>
+    </main>
+  </body>
+</html>
